@@ -86,9 +86,20 @@ Packages are fetched individually from `package_path`. A mirror directory is lai
 
 **Excluded from mirrors:** account e-mail addresses, password hashes, sessions and recovery material; private moderation reports, notifications, bookmarks; attachments the author has not pinned into a snapshot; worker queues.
 
-## 7. Planned
+## 7. AI analysis reports and responses
 
-- AI analysis reports as per-finding, version-bound, rebuttable records (no overall score; never a publication gate). Draft contract: `oic.analysis-report.draft-1`.
+Optional manifest field `analysis: {"reports": [...], "responses": [...]}` (added 2026-10-11; absent in older manifests).
+
+A **report** (`oic.analysis-report.v1`, self digest) is produced only when a work's author requests it. Fields: `id`, `revision_id`, `revision_sha256` (must equal the revision record's `sha256`), `created_at`, `analyzer {kind, name (model that served the request), requested_model, prompt_template, operator, cost_borne_by}`, `scope {read, not_checked[]}`, `findings[]`, `limitations`, `suspicious_instructions` (the text contained instructions addressed to the AI), `usage {input_tokens, output_tokens, cost_usd}`.
+
+Each **finding** is `{"id": "F1"…, "kind": "opinion"|"check", "category", "severity": "blocking"|"major"|"minor"|"note", "confidence", "location": {"section", "quote"}, "statement", "quote_verified"}`. `quote_verified` records whether the cited quote occurs in the revision text (whitespace- and case-insensitive); findings whose quote cannot be found stay visible but are flagged. There is deliberately **no overall score or verdict**, and reports never affect publication or default ordering.
+
+A **response** (`oic.analysis-response.v1`, self digest): `report_id`, `finding_id`, `actor_id`, `is_author` (true exactly when the responder is the revision's author), `stance`: `accept|dispute|revised|unclear`, `body`, optional `revision_ref` (a revision of the same work), `created_at`. Anyone signed in may respond.
+
+Verification: report digest; revision digest binding; finding ids in order; responses target an existing finding; `is_author` flag correct.
+
+## 8. Planned
+- Author-run analyses (bring your own model key, run locally, upload the report labelled as not reproduced by the site).
 - Snapshots and notices folded into the record chain.
 - Author signatures (server-held by default, exportable), with old records shown as "claimed at migration", never back-signed.
 - Incremental mirror sync by chain sequence.

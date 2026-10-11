@@ -35,7 +35,7 @@ class VerifyTests(unittest.TestCase):
         self.assertTrue(report['complete'])
         self.assertEqual(report['snapshots']['verified'], 1)
         self.assertEqual(len(report['withdrawn_works']), 1)
-        self.assertEqual(len(report['not_verified']), 4)
+        self.assertEqual(len(report['not_verified']), 5)
 
     def test_chain_fold_vector(self):
         import hashlib

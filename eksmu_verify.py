@@ -164,6 +164,33 @@ def check_events(events, index):
     return {'notices': len(events), 'withdrawn_works': sorted(w for w, v in withdrawn.items() if v)}
 
 
+def check_analysis(value, index):
+    """AI analysis reports (oic.analysis-report.v1) and responses; optional in manifests."""
+    require(isinstance(value, dict) and isinstance(value.get('reports'), list) and isinstance(value.get('responses'), list),
+            'analysis: bad envelope')
+    reports = {}
+    for r in value['reports']:
+        require(isinstance(r, dict) and r.get('format') == 'oic.analysis-report.v1' and self_digest_ok(r),
+                f'analysis report {r.get("id") if isinstance(r, dict) else "?"}: digest mismatch')
+        rev = index.get(r.get('revision_id'))
+        require(rev is not None and rev['type'] == 'revision' and rev['sha256'] == r.get('revision_sha256'),
+                f'analysis report {r["id"]}: does not match the revision it names')
+        require([f.get('id') for f in r['findings']] == [f'F{n}' for n in range(1, len(r['findings']) + 1)],
+                f'analysis report {r["id"]}: findings out of order')
+        reports[r['id']] = r
+    for v in value['responses']:
+        require(isinstance(v, dict) and v.get('format') == 'oic.analysis-response.v1' and self_digest_ok(v),
+                'analysis response: digest mismatch')
+        report = reports.get(v.get('report_id'))
+        require(report is not None and any(f['id'] == v.get('finding_id') for f in report['findings']),
+                f'analysis response {v["id"]}: unknown finding')
+        author = index[report['revision_id']]['actor_id']
+        require(v.get('actor_id') in index and v.get('is_author') == (v['actor_id'] == author),
+                f'analysis response {v["id"]}: wrong author flag')
+    return {'reports': len(reports), 'responses': len(value['responses']),
+            'quotes_not_found': sum(1 for r in reports.values() for f in r['findings'] if f.get('quote_verified') is False)}
+
+
 def verify(directory):
     root = Path(directory)
     raw = (root / 'manifest.json').read_bytes()
@@ -186,17 +213,20 @@ def verify(directory):
         require(snap['id'] == sid and snap['revision']['id'] == item['revision_id'], f'snapshot {sid}: index mismatch')
         verified += 1
     notices = check_events(m['publications']['events'], index)
+    analysis = check_analysis(m['analysis'], index) if 'analysis' in m else {'reports': 0, 'responses': 0, 'quotes_not_found': 0}
     return {
         'verifier': 'eksmu_verify.py', 'origin': m.get('origin'), 'generated_at': m.get('generated_at'),
         'records': len(rows), 'chain': chain, 'anchors': anchors,
         'snapshots': {'listed': len(m['publications']['snapshots']), 'verified': verified, 'missing': missing},
         **notices,
+        'analysis': analysis,
         'internally_consistent': True, 'complete': not missing,
         'not_verified': [
             'authorship: records carry no author signatures yet',
             'time: anchors are not checked against Bitcoin here; run `ots verify -f anchors/<id>.bin anchors/<id>.bin.ots`',
             'completeness: a mirror proves only what it contains; compare chain.head with an anchored head or another mirror',
             'content: integrity says nothing about whether any research claim is correct',
+            'analysis: AI reports are opinions bound to a version, not verdicts; their digests are checked, not their correctness',
         ],
     }
 
