@@ -165,18 +165,21 @@ def check_events(events, index):
 
 
 def check_analysis(value, index):
-    """AI analysis reports (oic.analysis-report.v1) and responses; optional in manifests."""
+    """AI analysis reports (oic.analysis-report.v1/v2) and responses; optional in manifests."""
     require(isinstance(value, dict) and isinstance(value.get('reports'), list) and isinstance(value.get('responses'), list),
             'analysis: bad envelope')
     reports = {}
     for r in value['reports']:
-        require(isinstance(r, dict) and r.get('format') == 'oic.analysis-report.v1' and self_digest_ok(r),
+        require(isinstance(r, dict) and r.get('format') in ('oic.analysis-report.v1', 'oic.analysis-report.v2') and self_digest_ok(r),
                 f'analysis report {r.get("id") if isinstance(r, dict) else "?"}: digest mismatch')
         rev = index.get(r.get('revision_id'))
         require(rev is not None and rev['type'] == 'revision' and rev['sha256'] == r.get('revision_sha256'),
                 f'analysis report {r["id"]}: does not match the revision it names')
         require([f.get('id') for f in r['findings']] == [f'F{n}' for n in range(1, len(r['findings']) + 1)],
                 f'analysis report {r["id"]}: findings out of order')
+        if r['format'] == 'oic.analysis-report.v2':
+            require([c.get('id') for c in r['claims']] == [f'C{n}' for n in range(1, len(r['claims']) + 1)],
+                    f'analysis report {r["id"]}: claims out of order')
         reports[r['id']] = r
     for v in value['responses']:
         require(isinstance(v, dict) and v.get('format') == 'oic.analysis-response.v1' and self_digest_ok(v),
