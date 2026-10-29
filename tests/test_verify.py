@@ -40,7 +40,20 @@ class VerifyTests(unittest.TestCase):
     def test_chain_fold_vector(self):
         import hashlib
         self.assertEqual(ev.fold('00' * 32, '00' * 32),
+                         hashlib.sha256(b'eksmu.record-chain.v1\x00' + bytes(64)).hexdigest())
+        self.assertEqual(ev.fold('00' * 32, '00' * 32, 'oic'),
                          hashlib.sha256(b'oic.record-chain.v1\x00' + bytes(64)).hexdigest())
+
+    def test_pre_rename_mirror_still_verifies(self):
+        report = ev.verify(FIXTURE.parent / 'fixture-mirror-oic')
+        self.assertTrue(report['internally_consistent'])
+        self.assertEqual(report['snapshots']['verified'], 1)
+
+    def test_mixed_generation_prefixes_fail(self):
+        self.manifest['chain']['format'] = 'oic.record-chain.v1'
+        self.save()
+        with self.assertRaisesRegex(ev.Invalid, 'chain'):
+            ev.verify(self.mirror)
 
     def test_edited_text_fails(self):
         self.revision()['payload']['body'] = 'tampered'

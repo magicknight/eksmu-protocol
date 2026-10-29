@@ -17,12 +17,9 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
-MIRROR = 'oic.public-mirror.v1'
-RECORD_BUNDLES = {'oic.bundle.v1', 'oic.publication-bundle.v1'}
-CHAIN = 'oic.record-chain.v1'
-SNAPSHOT = 'oic.publication-snapshot.v1'
-PACKAGE = 'oic.publication-package.v1'
-EVENT = 'oic.publication-event.v1'
+# Format names start with a generation prefix: "eksmu" since 2026-10-29, "oic" before
+# (the project's working name). One mirror uses one prefix throughout.
+PREFIXES = ('eksmu', 'oic')
 GENESIS = '0' * 64
 RECORD_TYPES = {'actor', 'exploration', 'revision', 'comment', 'evidence'}
 MAX_MANIFEST = 64 * 1024 * 1024
@@ -45,8 +42,8 @@ def self_digest_ok(obj):
     return isinstance(obj, dict) and obj.get('sha256') == digest({k: v for k, v in obj.items() if k != 'sha256'})
 
 
-def fold(previous_head, record_sha256):
-    return hashlib.sha256(b'oic.record-chain.v1\x00' + bytes.fromhex(previous_head)
+def fold(previous_head, record_sha256, prefix='eksmu'):
+    return hashlib.sha256(f'{prefix}.record-chain.v1'.encode() + b'\x00' + bytes.fromhex(previous_head)
                           + bytes.fromhex(record_sha256)).hexdigest()
 
 
@@ -59,9 +56,15 @@ def is_hex64(value):
     return isinstance(value, str) and len(value) == 64 and all(c in '0123456789abcdef' for c in value)
 
 
-def check_records(bundle):
+def mirror_prefix(m):
+    require(isinstance(m, dict) and m.get('format') in {f'{p}.public-mirror.v1' for p in PREFIXES},
+            'not an Eksmu mirror manifest')
+    return m['format'].split('.', 1)[0]
+
+
+def check_records(bundle, prefix='eksmu'):
     require(isinstance(bundle, dict) and set(bundle) == {'format', 'records', 'sha256'}, 'records: bad envelope')
-    require(bundle['format'] in RECORD_BUNDLES, 'records: unknown format')
+    require(bundle['format'] in {f'{prefix}.bundle.v1', f'{prefix}.publication-bundle.v1'}, 'records: unknown format')
     rows = bundle['records']
     require(isinstance(rows, list) and bundle['sha256'] == digest(rows), 'records: bundle digest mismatch')
     index, heads = {}, {}
@@ -92,15 +95,15 @@ def check_records(bundle):
     return rows, index
 
 
-def check_chain(chain, rows):
-    require(isinstance(chain, dict) and chain.get('format') == CHAIN, 'chain: unknown format')
+def check_chain(chain, rows, prefix='eksmu'):
+    require(isinstance(chain, dict) and chain.get('format') == f'{prefix}.record-chain.v1', 'chain: unknown format')
     entries = chain.get('entries')
     require(isinstance(entries, list) and len(entries) == len(rows), 'chain: length differs from records')
     head = GENESIS
     for n, (entry, row) in enumerate(zip(entries, rows), 1):
         require(isinstance(entry, dict) and entry.get('seq') == n and entry.get('record_id') == row['id']
                 and entry.get('record_sha256') == row['sha256'], f'chain: entry {n} does not match record {n}')
-        head = fold(head, row['sha256'])
+        head = fold(head, row['sha256'], prefix)
         require(entry.get('head') == head, f'chain: head mismatch at entry {n}')
     return {'length': len(entries), 'head': head,
             'backfilled_entries': sum(1 for e in entries if e.get('backfilled') is True)}
@@ -124,11 +127,12 @@ def check_anchors(anchors, entries):
     return out
 
 
-def check_package(package, expected_sha256, index):
-    require(isinstance(package, dict) and set(package) == {'format', 'snapshot', 'blobs'} and package['format'] == PACKAGE,
-            'package: bad envelope')
+def check_package(package, expected_sha256, index, prefix='eksmu'):
+    require(isinstance(package, dict) and set(package) == {'format', 'snapshot', 'blobs'}
+            and package['format'] == f'{prefix}.publication-package.v1', 'package: bad envelope')
     snap = package['snapshot']
-    require(isinstance(snap, dict) and snap.get('format') == SNAPSHOT and self_digest_ok(snap), 'snapshot: digest mismatch')
+    require(isinstance(snap, dict) and snap.get('format') == f'{prefix}.publication-snapshot.v1' and self_digest_ok(snap),
+            'snapshot: digest mismatch')
     require(snap['sha256'] == expected_sha256, 'snapshot: differs from the mirror index')
     rev, work = snap.get('revision'), snap.get('exploration')
     require(index.get(rev.get('id')) == rev and index.get(work.get('id')) == work, 'snapshot: not identical to mirrored records')
@@ -145,11 +149,12 @@ def check_package(package, expected_sha256, index):
     return snap
 
 
-def check_events(events, index):
+def check_events(events, index, prefix='eksmu'):
     require(isinstance(events, list), 'notices: must be a list')
     previous, withdrawn = {}, {}
     for e in events:
-        require(isinstance(e, dict) and e.get('format') == EVENT and self_digest_ok(e), 'notice: digest mismatch')
+        require(isinstance(e, dict) and e.get('format') == f'{prefix}.publication-event.v1' and self_digest_ok(e),
+                'notice: digest mismatch')
         work, rev = index.get(e.get('exploration_id')), index.get(e.get('revision_id'))
         require(work is not None and work['type'] == 'exploration' and rev is not None and rev['type'] == 'revision'
                 and rev['payload']['exploration_id'] == work['id'] and e.get('actor_id') == work['actor_id'],
@@ -164,25 +169,26 @@ def check_events(events, index):
     return {'notices': len(events), 'withdrawn_works': sorted(w for w, v in withdrawn.items() if v)}
 
 
-def check_analysis(value, index):
-    """AI analysis reports (oic.analysis-report.v1/v2) and responses; optional in manifests."""
+def check_analysis(value, index, prefix='eksmu'):
+    """AI analysis reports (<prefix>.analysis-report.v1/v2) and responses; optional in manifests."""
     require(isinstance(value, dict) and isinstance(value.get('reports'), list) and isinstance(value.get('responses'), list),
             'analysis: bad envelope')
     reports = {}
     for r in value['reports']:
-        require(isinstance(r, dict) and r.get('format') in ('oic.analysis-report.v1', 'oic.analysis-report.v2') and self_digest_ok(r),
+        require(isinstance(r, dict) and r.get('format') in (f'{prefix}.analysis-report.v1', f'{prefix}.analysis-report.v2')
+                and self_digest_ok(r),
                 f'analysis report {r.get("id") if isinstance(r, dict) else "?"}: digest mismatch')
         rev = index.get(r.get('revision_id'))
         require(rev is not None and rev['type'] == 'revision' and rev['sha256'] == r.get('revision_sha256'),
                 f'analysis report {r["id"]}: does not match the revision it names')
         require([f.get('id') for f in r['findings']] == [f'F{n}' for n in range(1, len(r['findings']) + 1)],
                 f'analysis report {r["id"]}: findings out of order')
-        if r['format'] == 'oic.analysis-report.v2':
+        if r['format'] == f'{prefix}.analysis-report.v2':
             require([c.get('id') for c in r['claims']] == [f'C{n}' for n in range(1, len(r['claims']) + 1)],
                     f'analysis report {r["id"]}: claims out of order')
         reports[r['id']] = r
     for v in value['responses']:
-        require(isinstance(v, dict) and v.get('format') == 'oic.analysis-response.v1' and self_digest_ok(v),
+        require(isinstance(v, dict) and v.get('format') == f'{prefix}.analysis-response.v1' and self_digest_ok(v),
                 'analysis response: digest mismatch')
         report = reports.get(v.get('report_id'))
         require(report is not None and any(f['id'] == v.get('finding_id') for f in report['findings']),
@@ -199,9 +205,9 @@ def verify(directory):
     raw = (root / 'manifest.json').read_bytes()
     require(len(raw) <= MAX_MANIFEST, 'manifest too large')
     m = json.loads(raw)
-    require(isinstance(m, dict) and m.get('format') == MIRROR, 'not an Eksmu mirror manifest')
-    rows, index = check_records(m['records'])
-    chain = check_chain(m['chain'], rows)
+    prefix = mirror_prefix(m)
+    rows, index = check_records(m['records'], prefix)
+    chain = check_chain(m['chain'], rows, prefix)
     anchors = check_anchors(m['anchors'], m['chain']['entries'])
     verified, missing = 0, []
     for item in m['publications']['snapshots']:
@@ -212,11 +218,11 @@ def verify(directory):
             missing.append(sid)
             continue
         require(path.stat().st_size <= MAX_PACKAGE, f'snapshot {sid}: too large')
-        snap = check_package(json.loads(path.read_bytes()), item['sha256'], index)
+        snap = check_package(json.loads(path.read_bytes()), item['sha256'], index, prefix)
         require(snap['id'] == sid and snap['revision']['id'] == item['revision_id'], f'snapshot {sid}: index mismatch')
         verified += 1
-    notices = check_events(m['publications']['events'], index)
-    analysis = check_analysis(m['analysis'], index) if 'analysis' in m else {'reports': 0, 'responses': 0, 'quotes_not_found': 0}
+    notices = check_events(m['publications']['events'], index, prefix)
+    analysis = check_analysis(m['analysis'], index, prefix) if 'analysis' in m else {'reports': 0, 'responses': 0, 'quotes_not_found': 0}
     return {
         'verifier': 'eksmu_verify.py', 'origin': m.get('origin'), 'generated_at': m.get('generated_at'),
         'records': len(rows), 'chain': chain, 'anchors': anchors,
@@ -252,7 +258,7 @@ def pull(origin, directory):
     root.mkdir()
     raw = fetch(base + '/api/mirror', MAX_MANIFEST)
     m = json.loads(raw)
-    require(isinstance(m, dict) and m.get('format') == MIRROR, 'origin did not return a mirror manifest')
+    mirror_prefix(m)
     (root / 'manifest.json').write_bytes(raw)
     (root / 'anchors').mkdir()
     for a in m['anchors']:

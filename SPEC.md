@@ -1,6 +1,6 @@
 # Eksmu public record formats — v1
 
-Status: describes what `https://eksmu.com` serves as of 2026-10-11. Format names keep the historical `oic.` prefix (Open Inquiry Community, the project's working name). Changes are additive; a breaking change gets a new format name.
+Status: describes what `https://eksmu.com` serves as of 2026-10-29. Since 2026-10-29 every format name uses the `eksmu.` prefix; before that the same formats were named with the historical `oic.` prefix (Open Inquiry Community, the project's working name), and the record-chain domain string was `oic.record-chain.v1`. Apart from the prefix the two generations are identical. A mirror uses one prefix throughout; verifiers should accept either. Changes are additive; a breaking change gets a new format name.
 
 The purpose of these formats is that **anyone can copy the public record of an Eksmu site and check, without trusting the operator, that nothing was silently edited, reordered or back-dated after it was anchored.** They do not encode any judgement about research quality.
 
@@ -29,15 +29,15 @@ Every public action is an append-only record with a self digest:
 | `comment` | `revision_id`, `reply_to`, `body` | Targets an existing revision. |
 | `evidence` | `revision_id`, `source`, `tool`, `scope`, `method`, `result`, `limitations`, `status`, `service_verified` | A submitted report about a revision. `service_verified` is always `false`: the site never certifies reports. |
 
-A **record bundle** is `{"format": "oic.bundle.v1" | "oic.publication-bundle.v1", "records": [...], "sha256": digest(records)}`. Order is storage order and matters for the chain.
+A **record bundle** is `{"format": "eksmu.bundle.v1" | "eksmu.publication-bundle.v1", "records": [...], "sha256": digest(records)}`. Order is storage order and matters for the chain.
 
 `created_at` comes from the server clock. It is only as trustworthy as the operator until the record is covered by an anchor (§4).
 
-## 3. Record chain (`oic.record-chain.v1`)
+## 3. Record chain (`eksmu.record-chain.v1`)
 
 ```text
 head_0 = 32 zero bytes
-head_n = SHA-256( "oic.record-chain.v1" || 0x00 || head_(n-1) || record_sha256_n )
+head_n = SHA-256( "eksmu.record-chain.v1" || 0x00 || head_(n-1) || record_sha256_n )
 ```
 
 Heads and record digests are used as raw 32-byte values. Entry *n* is `{"seq": n, "record_id", "record_sha256", "head", "chained_at", "backfilled"}`. `backfilled: true` marks records that existed before the chain was introduced (2026-10-08); their earlier times rest on the server clock alone.
@@ -50,22 +50,22 @@ An anchor commits a chain head to Bitcoin via [OpenTimestamps](https://opentimes
 
 ## 5. Publication snapshots and notices
 
-A **snapshot** (`oic.publication-snapshot.v1`, self digest) fixes one revision plus selected attachments: `id`, `created_at`, `previous_snapshot_id`, `publisher {id, alias}`, `exploration` (the full exploration record), `revision` (the full revision record), `materials` (sorted by id: `id, revision_id, actor_id, filename, mime, sha256, created_at, size`).
+A **snapshot** (`eksmu.publication-snapshot.v1`, self digest) fixes one revision plus selected attachments: `id`, `created_at`, `previous_snapshot_id`, `publisher {id, alias}`, `exploration` (the full exploration record), `revision` (the full revision record), `materials` (sorted by id: `id, revision_id, actor_id, filename, mime, sha256, created_at, size`).
 
-A **package** (`oic.publication-package.v1`) is `{"format", "snapshot", "blobs": [{"sha256", "data_b64"}]}` with exactly one blob per distinct material digest; each blob's bytes must hash to its `sha256` and match the listed `size`.
+A **package** (`eksmu.publication-package.v1`) is `{"format", "snapshot", "blobs": [{"sha256", "data_b64"}]}` with exactly one blob per distinct material digest; each blob's bytes must hash to its `sha256` and match the listed `size`.
 
-A **notice** (`oic.publication-event.v1`, self digest) is an author statement about a work: `kind` is `note`, `withdraw` or `reinstate`; `previous_event_id` links each notice to the previous one for the same work; `withdraw` and `reinstate` must alternate. Withdrawal is a public statement, not deletion: the record and its critiques remain.
+A **notice** (`eksmu.publication-event.v1`, self digest) is an author statement about a work: `kind` is `note`, `withdraw` or `reinstate`; `previous_event_id` links each notice to the previous one for the same work; `withdraw` and `reinstate` must alternate. Withdrawal is a public statement, not deletion: the record and its critiques remain.
 
 Snapshots and notices are not yet covered by the record chain; they are bound to it only through the full exploration/revision records they embed.
 
-## 6. Public mirror (`oic.public-mirror.v1`)
+## 6. Public mirror (`eksmu.public-mirror.v1`)
 
 `GET /api/mirror` returns:
 
 ```json
-{"format": "oic.public-mirror.v1", "generated_at", "origin",
+{"format": "eksmu.public-mirror.v1", "generated_at", "origin",
  "records": <record bundle>,
- "chain": {"format": "oic.record-chain.v1", "entries": [...], "algorithm": {...}},
+ "chain": {"format": "eksmu.record-chain.v1", "entries": [...], "algorithm": {...}},
  "anchors": [...],
  "publications": {"snapshots": [{"id", "exploration_id", "revision_id", "created_at", "sha256"}],
                   "events": [<notice>...], "package_path": "/api/publications/export?snapshot_id={id}"},
@@ -90,13 +90,13 @@ Packages are fetched individually from `package_path`. A mirror directory is lai
 
 Optional manifest field `analysis: {"reports": [...], "responses": [...]}` (added 2026-10-11; absent in older manifests).
 
-A **report** (`oic.analysis-report.v1`, self digest) is produced only when a work's author requests it. Fields: `id`, `revision_id`, `revision_sha256` (must equal the revision record's `sha256`), `created_at`, `analyzer {kind, name (model that served the request), requested_model, prompt_template, operator, cost_borne_by}`, `scope {read, not_checked[]}`, `findings[]`, `limitations`, `suspicious_instructions` (the text contained instructions addressed to the AI), `usage {input_tokens, output_tokens, cost_usd}`.
+A **report** (`eksmu.analysis-report.v1`, self digest) is produced only when a work's author requests it. Fields: `id`, `revision_id`, `revision_sha256` (must equal the revision record's `sha256`), `created_at`, `analyzer {kind, name (model that served the request), requested_model, prompt_template, operator, cost_borne_by}`, `scope {read, not_checked[]}`, `findings[]`, `limitations`, `suspicious_instructions` (the text contained instructions addressed to the AI), `usage {input_tokens, output_tokens, cost_usd}`.
 
-Version 2 (`oic.analysis-report.v2`, from 2026-10-11) adds a referee-report structure, still without any score or accept/reject recommendation: `summary` (neutral restatement of the question, approach and claimed results), `claims[]` (`{"id": "C1"…, "claim", "section", "assessment": "supported"|"partially_supported"|"not_established"|"not_assessed", "reasoning"}` — the model's opinion on whether the manuscript itself establishes each main claim), `strengths[]`, `questions[]` (for the author), `suggestions[]` (steps that would strengthen the work) and `overall` (prose). Version 1 reports remain valid.
+Version 2 (`eksmu.analysis-report.v2`, from 2026-10-11) adds a referee-report structure, still without any score or accept/reject recommendation: `summary` (neutral restatement of the question, approach and claimed results), `claims[]` (`{"id": "C1"…, "claim", "section", "assessment": "supported"|"partially_supported"|"not_established"|"not_assessed", "reasoning"}` — the model's opinion on whether the manuscript itself establishes each main claim), `strengths[]`, `questions[]` (for the author), `suggestions[]` (steps that would strengthen the work) and `overall` (prose). Version 1 reports remain valid.
 
 Each **finding** is `{"id": "F1"…, "kind": "opinion"|"check", "category", "severity": "blocking"|"major"|"minor"|"note", "confidence", "location": {"section", "quote"}, "statement", "quote_verified"}`. `quote_verified` records whether the cited quote occurs in the revision text (whitespace- and case-insensitive); findings whose quote cannot be found stay visible but are flagged. There is deliberately **no overall score or verdict**, and reports never affect publication or default ordering.
 
-A **response** (`oic.analysis-response.v1`, self digest): `report_id`, `finding_id`, `actor_id`, `is_author` (true exactly when the responder is the revision's author), `stance`: `accept|dispute|revised|unclear`, `body`, optional `revision_ref` (a revision of the same work), `created_at`. Anyone signed in may respond.
+A **response** (`eksmu.analysis-response.v1`, self digest): `report_id`, `finding_id`, `actor_id`, `is_author` (true exactly when the responder is the revision's author), `stance`: `accept|dispute|revised|unclear`, `body`, optional `revision_ref` (a revision of the same work), `created_at`. Anyone signed in may respond.
 
 Verification: report digest; revision digest binding; finding ids in order; responses target an existing finding; `is_author` flag correct.
 
