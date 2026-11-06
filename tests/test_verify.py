@@ -112,6 +112,89 @@ class VerifyTests(unittest.TestCase):
         with self.assertRaises(ev.Invalid):
             ev.verify(self.mirror)
 
+    def add_material(self):
+        import uuid
+        rows = self.manifest['records']['records']
+        rev = self.revision()
+        row = {'id': str(uuid.uuid4()), 'type': 'material', 'actor_id': rev['actor_id'],
+               'created_at': '2026-11-06T00:00:00+00:00',
+               'payload': {'attachment_id': str(uuid.uuid4()), 'revision_id': rev['id'],
+                           'size': 10, 'content_sha256': 'ab' * 32, 'origin': 'upload',
+                           'derived_from_sha256': None}}
+        row['sha256'] = ev.digest(row)
+        rows.append(row)
+        self.manifest['records']['sha256'] = ev.digest(rows)
+        entries = self.manifest['chain']['entries']
+        entries.append({'seq': len(entries) + 1, 'record_id': row['id'],
+                        'record_sha256': row['sha256'],
+                        'head': ev.fold(entries[-1]['head'], row['sha256'], 'eksmu'),
+                        'chained_at': row['created_at'], 'backfilled': True})
+        self.manifest['format'] = 'eksmu.public-mirror.v2'
+        return row
+
+    def test_experimental_v2_material_and_v1_rejection(self):
+        self.add_material()
+        self.save()
+        self.assertTrue(ev.verify(self.mirror)['internally_consistent'])
+        self.manifest['format'] = 'eksmu.public-mirror.v1'
+        self.save()
+        with self.assertRaisesRegex(ev.Invalid, 'require mirror v2'):
+            ev.verify(self.mirror)
+
+    def test_experimental_material_tampering(self):
+        row = self.add_material()
+        row['payload']['content_sha256'] = 'cd' * 32
+        row['sha256'] = ev.digest({k: v for k, v in row.items() if k != 'sha256'})
+        self.manifest['records']['sha256'] = ev.digest(self.manifest['records']['records'])
+        self.save()
+        with self.assertRaisesRegex(ev.Invalid, 'chain'):
+            ev.verify(self.mirror)
+
+    def test_experimental_material_must_match_author(self):
+        row = self.add_material()
+        row['actor_id'] = next(r['id'] for r in self.manifest['records']['records']
+                               if r['type'] == 'actor' and r['id'] != row['actor_id'])
+        row['sha256'] = ev.digest({k: v for k, v in row.items() if k != 'sha256'})
+        self.manifest['records']['sha256'] = ev.digest(self.manifest['records']['records'])
+        self.save()
+        with self.assertRaisesRegex(ev.Invalid, 'owner mismatch'):
+            ev.verify(self.mirror)
+
+    def test_eksmu_v1_and_v2_minimal_mirrors(self):
+        import uuid
+        actor_id, work_id, revision_id = (str(uuid.uuid4()) for _ in range(3))
+        def rec(rid, kind, actor, payload):
+            value = {'id': rid, 'type': kind, 'actor_id': actor,
+                     'created_at': '2026-11-06T00:00:00+00:00', 'payload': payload}
+            value['sha256'] = ev.digest(value)
+            return value
+        rows = [rec(actor_id, 'actor', actor_id, {'alias': 'A', 'key_hash': '00' * 32}),
+                rec(work_id, 'exploration', actor_id, {'kind': 'question'}),
+                rec(revision_id, 'revision', actor_id, {'exploration_id': work_id, 'parent_revision_id': None,
+                    'title': 'T', 'body': 'B', 'note': ''})]
+        self.manifest = {'format': 'eksmu.public-mirror.v1', 'generated_at': '', 'origin': None,
+            'records': {'format': 'eksmu.bundle.v1', 'records': rows, 'sha256': ev.digest(rows)},
+            'chain': {'format': 'eksmu.record-chain.v1', 'entries': []}, 'anchors': [],
+            'publications': {'snapshots': [], 'events': []}}
+        head = '00' * 32
+        for i, row in enumerate(rows, 1):
+            head = ev.fold(head, row['sha256'], 'eksmu')
+            self.manifest['chain']['entries'].append({'seq': i, 'record_id': row['id'],
+                'record_sha256': row['sha256'], 'head': head, 'backfilled': False})
+        self.save()
+        self.assertTrue(ev.verify(self.mirror)['internally_consistent'])
+        material = rec(str(uuid.uuid4()), 'material', actor_id, {'attachment_id': str(uuid.uuid4()),
+            'revision_id': revision_id, 'size': 1, 'content_sha256': 'ab' * 32,
+            'origin': 'upload', 'derived_from_sha256': None})
+        rows.append(material)
+        self.manifest['records']['sha256'] = ev.digest(rows)
+        self.manifest['chain']['entries'].append({'seq': 4, 'record_id': material['id'],
+            'record_sha256': material['sha256'], 'head': ev.fold(head, material['sha256'], 'eksmu'),
+            'backfilled': True})
+        self.manifest['format'] = 'eksmu.public-mirror.v2'
+        self.save()
+        self.assertTrue(ev.verify(self.mirror)['internally_consistent'])
+
     def test_pull_requires_https(self):
         with self.assertRaises(ev.Invalid):
             ev.pull('http://example.com', self.tmp / 'x')

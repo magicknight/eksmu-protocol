@@ -1,6 +1,6 @@
-# Eksmu public record formats — v1
+# Eksmu public record formats — v1 and experimental v2
 
-Status: describes what `https://eksmu.com` serves as of 2026-10-29. Since 2026-10-29 every format name uses the `eksmu.` prefix; before that the same formats were named with the historical `oic.` prefix (Open Inquiry Community, the project's working name), and the record-chain domain string was `oic.record-chain.v1`. Apart from the prefix the two generations are identical. A mirror uses one prefix throughout; verifiers should accept either. Changes are additive; a breaking change gets a new format name.
+Status: v1 is the deployed mirror format; the v2 specification and verifier support are experimental and do not indicate that attachment commitments are deployed or anchored. Since the 2026-10-29 rename, current formats use the `eksmu.` prefix; older mirrors use `oic.`. One mirror uses the same prefix throughout, including the record-chain hash domain. Examples below use `eksmu.`; the equivalent historical `oic.` v1 formats remain supported. A breaking change gets a new format name.
 
 The purpose of these formats is that **anyone can copy the public record of an Eksmu site and check, without trusting the operator, that nothing was silently edited, reordered or back-dated after it was anchored.** They do not encode any judgement about research quality.
 
@@ -40,7 +40,7 @@ head_0 = 32 zero bytes
 head_n = SHA-256( "eksmu.record-chain.v1" || 0x00 || head_(n-1) || record_sha256_n )
 ```
 
-Heads and record digests are used as raw 32-byte values. Entry *n* is `{"seq": n, "record_id", "record_sha256", "head", "chained_at", "backfilled"}`. `backfilled: true` marks records that existed before the chain was introduced (2026-10-08); their earlier times rest on the server clock alone.
+Heads and record digests are used as raw 32-byte values. Entry *n* is `{"seq": n, "record_id", "record_sha256", "head", "chained_at", "backfilled"}`. `backfilled: true` marks records added to the chain after their source existed, including experimental material backfills. Earlier claimed times rest on the server clock alone; only a later independently verified anchor supplies an external time bound.
 
 ## 4. Anchors
 
@@ -105,3 +105,21 @@ Verification: report digest; revision digest binding; finding ids in order; resp
 - Snapshots and notices folded into the record chain.
 - Author signatures (server-held by default, exportable), with old records shown as "claimed at migration", never back-signed.
 - Incremental mirror sync by chain sequence.
+
+## 9. Experimental mirror v2: attachment commitments
+
+**Experimental format.** Publication of this specification and verifier support does not imply production migration, automatic reconciliation, or Bitcoin anchoring. The experimental mirror format is `<prefix>.public-mirror.v2`, retaining the v1 envelope and `<prefix>.record-chain.v1` folding algorithm. Existing v1 mirrors remain valid. A v1 mirror MUST NOT contain a `material` record; old v1-only clients must reject v2 rather than mistake it for v1.
+
+A `material` record uses the ordinary record envelope (§2), with this exact payload:
+
+```json
+{"attachment_id":"<uuid>", "revision_id":"<uuid>", "size":123,
+ "content_sha256":"<lowercase hex SHA-256 of file bytes>",
+ "origin":"upload", "derived_from_sha256":null}
+```
+
+`size` is a non-negative integer. `derived_from_sha256` is null or a lowercase SHA-256 digest. The revision must precede the record, and its author must match the record's actor. The experimental reconciler verifies the bytes and size before committing. It places no filename in the record; the digest itself can still reveal a guessed file. `origin` describes attachment provenance and does not itself prove how it was produced. A derived digest is a claimed link, not independent proof of a build.
+
+The mirror verifier checks the material record's schema, author and revision reference, record digest, chain membership, and anchor binding. **It does not fetch or check the attachment bytes.** A reader who has the bytes must separately compute SHA-256 and compare it to `content_sha256`; the current verifier does not perform that comparison as a file verification command. `complete` refers to the mirror's listed snapshot packages, not completeness or availability of all attachments. A claimed anchor status is not a Bitcoin verification; an independent OpenTimestamps verification is still required. A matched file digest plus a confirmed anchor covering the material entry provides an upper bound on existence of those bytes, not identity, originality, quality, or public availability.
+
+The experimental backfill operation marks entries `backfilled: true` and never claims a timestamp earlier than a subsequent covering anchor. Upload and reconciliation are separate steps; automatic retry, per-file pending/confirmed display, source-record retention and compatible publication of verifier and specification remain prerequisites before real-instance use. No redaction, removal authority, or automatic deletion protocol is defined by v2 here.

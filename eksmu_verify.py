@@ -21,7 +21,7 @@ from pathlib import Path
 # (the project's working name). One mirror uses one prefix throughout.
 PREFIXES = ('eksmu', 'oic')
 GENESIS = '0' * 64
-RECORD_TYPES = {'actor', 'exploration', 'revision', 'comment', 'evidence'}
+RECORD_TYPES = {'actor', 'exploration', 'revision', 'comment', 'evidence', 'material'}
 MAX_MANIFEST = 64 * 1024 * 1024
 MAX_PACKAGE = 90 * 1024 * 1024
 
@@ -57,7 +57,7 @@ def is_hex64(value):
 
 
 def mirror_prefix(m):
-    require(isinstance(m, dict) and m.get('format') in {f'{p}.public-mirror.v1' for p in PREFIXES},
+    require(isinstance(m, dict) and m.get('format') in {f'{p}.public-mirror.v{v}' for p in PREFIXES for v in (1, 2)},
             'not an Eksmu mirror manifest')
     return m['format'].split('.', 1)[0]
 
@@ -87,9 +87,14 @@ def check_records(bundle, prefix='eksmu'):
             require(work['actor_id'] == row['actor_id'], f'record {n}: only the author may revise a work')
             require(p.get('parent_revision_id') == heads.get(work['id']), f'record {n}: revision out of order')
             heads[work['id']] = row['id']
-        if row['type'] in {'comment', 'evidence'}:
+        if row['type'] in {'comment', 'evidence', 'material'}:
             target = index.get(p.get('revision_id'))
             require(target is not None and target['type'] == 'revision', f'record {n}: target revision unknown')
+            if row['type'] == 'material':
+                require(target['actor_id'] == row['actor_id'], f'record {n}: material owner mismatch')
+                require(set(p) == {'attachment_id', 'revision_id', 'size', 'content_sha256', 'origin', 'derived_from_sha256'}, f'record {n}: bad material fields')
+                require(isinstance(p['attachment_id'], str) and isinstance(p['origin'], str), f'record {n}: invalid material fields')
+                require(type(p['size']) is int and p['size'] >= 0 and is_hex64(p['content_sha256']) and (p['derived_from_sha256'] is None or is_hex64(p['derived_from_sha256'])), f'record {n}: invalid material digest or size')
         index[row['id']] = row
     require(all(r['id'] in heads for r in rows if r['type'] == 'exploration'), 'records: work without a revision')
     return rows, index
@@ -207,6 +212,7 @@ def verify(directory):
     m = json.loads(raw)
     prefix = mirror_prefix(m)
     rows, index = check_records(m['records'], prefix)
+    require(m['format'].endswith('.v2') or not any(r['type'] == 'material' for r in rows), 'material records require mirror v2')
     chain = check_chain(m['chain'], rows, prefix)
     anchors = check_anchors(m['anchors'], m['chain']['entries'])
     verified, missing = 0, []
