@@ -2,14 +2,16 @@
 
 [Eksmu](https://eksmu.com) is an open research platform: anyone can publish, without credentials, endorsements, wallets or fees. This repository is the part you should not have to take on trust:
 
-- **[SPEC.md](SPEC.md)** — the public record formats: records, the hash chain, Bitcoin time anchors (OpenTimestamps), publication snapshots, author notices and the public mirror.
-- **[eksmu_verify.py](eksmu_verify.py)** — a single-file verifier (Python 3.9+, standard library only, ~250 lines) that downloads a site's public mirror and available publication snapshots and checks them offline. Attachments not pinned in a snapshot are excluded.
+- **[SPEC.md](SPEC.md)** — the public record formats: records, the hash chain, Bitcoin time anchors (OpenTimestamps), publication snapshots, author notices, attachment commitments (`eksmu.public-mirror.v2`) and digest-only chain witnesses (`eksmu.chain-witness.v1`).
+- **[eksmu_verify.py](eksmu_verify.py)** — a single-file verifier (Python 3.9+, standard library only) that downloads a site's public mirror and available publication snapshots, checks them offline, and verifies any downloaded PDF or LaTeX source archive against the chain.
+- **[proof_bundle.py](proof_bundle.py)** & **[witness/](witness/)** — a digest-only chain witness (`witness/chain-witness.json`) and OpenTimestamps anchor files (`witness/anchors/*.bin`, `*.bin.ots`) so anyone can audit the hash chain and Bitcoin proofs even without reaching `eksmu.com`.
 
 ```bash
 python3 eksmu_verify.py pull https://eksmu.com ./eksmu-mirror
 python3 eksmu_verify.py verify ./eksmu-mirror
 python3 eksmu_verify.py verify-file ./eksmu-mirror ./paper.pdf   # or pass a single record-proof JSON
-# optional, needs a Bitcoin node:  ots verify -f eksmu-mirror/anchors/1.bin eksmu-mirror/anchors/1.bin.ots
+python3 proof_bundle.py verify witness/chain-witness.json
+# optional, needs a Bitcoin node:  ots verify -f witness/anchors/1.bin witness/anchors/1.bin.ots
 ```
 
 ## What this guarantees, and what it does not

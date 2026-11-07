@@ -206,6 +206,38 @@ def check_analysis(value, index, prefix='eksmu'):
             'quotes_not_found': sum(1 for r in reports.values() for f in r['findings'] if f.get('quote_verified') is False)}
 
 
+def check_redactions(value, index):
+    require(isinstance(value, list), 'redactions: must be a list')
+    seen = set()
+    for item in value:
+        require(isinstance(item, dict), 'redaction: must be an object')
+        aid = item.get('attachment_id')
+        rid = item.get('record_id')
+        rev_id = item.get('revision_id')
+        csha = item.get('content_sha256')
+        rcode = item.get('reason_code')
+        rtext = item.get('reason')
+        require(isinstance(aid, str) and aid and aid not in seen, f'redaction: invalid or duplicate attachment_id {aid}')
+        seen.add(aid)
+        require(isinstance(rid, str) and rid and isinstance(rev_id, str) and rev_id and is_hex64(csha),
+                f'redaction {aid}: invalid identifiers or digest')
+        require(rcode in {'privacy', 'copyright', 'illegal', 'author_request', 'other'},
+                f'redaction {aid}: invalid reason_code')
+        require(isinstance(rtext, str) and rtext.strip(), f'redaction {aid}: missing reason')
+        rev = index.get(rev_id)
+        require(rev is not None and rev['type'] == 'revision', f'redaction {aid}: references unknown revision')
+        mrec = index.get(rid)
+        if mrec is not None:
+            require(
+                mrec['type'] == 'material'
+                and mrec['payload'].get('attachment_id') == aid
+                and mrec['payload'].get('revision_id') == rev_id
+                and mrec['payload'].get('content_sha256') == csha,
+                f'redaction {aid}: does not match its material record',
+            )
+    return len(value)
+
+
 def verify(directory):
     root = Path(directory)
     raw = (root / 'manifest.json').read_bytes()
@@ -213,7 +245,8 @@ def verify(directory):
     m = json.loads(raw)
     prefix = mirror_prefix(m)
     rows, index = check_records(m['records'], prefix)
-    require(m['format'].endswith('.v2') or not any(r['type'] == 'material' for r in rows), 'material records require mirror v2')
+    require(m['format'].endswith('.v2') or (not any(r['type'] == 'material' for r in rows) and 'redactions' not in m),
+            'material records require mirror v2')
     chain = check_chain(m['chain'], rows, prefix)
     anchors = check_anchors(m['anchors'], m['chain']['entries'])
     verified, missing = 0, []
@@ -230,12 +263,14 @@ def verify(directory):
         verified += 1
     notices = check_events(m['publications']['events'], index, prefix)
     analysis = check_analysis(m['analysis'], index, prefix) if 'analysis' in m else {'reports': 0, 'responses': 0, 'quotes_not_found': 0}
+    redactions = check_redactions(m['redactions'], index) if 'redactions' in m else 0
     return {
         'verifier': 'eksmu_verify.py', 'origin': m.get('origin'), 'generated_at': m.get('generated_at'),
         'records': len(rows), 'chain': chain, 'anchors': anchors,
         'snapshots': {'listed': len(m['publications']['snapshots']), 'verified': verified, 'missing': missing},
         **notices,
         'analysis': analysis,
+        'redactions': redactions,
         'internally_consistent': True, 'complete': not missing,
         'not_verified': [
             'authorship: records carry no author signatures yet',
