@@ -8,6 +8,7 @@
 ```bash
 python3 eksmu_verify.py pull https://eksmu.com ./eksmu-mirror
 python3 eksmu_verify.py verify ./eksmu-mirror
+python3 eksmu_verify.py verify-file ./eksmu-mirror ./paper.pdf   # or pass a single record-proof JSON
 # optional, needs a Bitcoin node:  ots verify -f eksmu-mirror/anchors/1.bin eksmu-mirror/anchors/1.bin.ots
 ```
 

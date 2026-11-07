@@ -199,6 +199,44 @@ class VerifyTests(unittest.TestCase):
         with self.assertRaises(ev.Invalid):
             ev.pull('http://example.com', self.tmp / 'x')
 
+    def test_verify_file_against_mirror_and_record_proof(self):
+        import hashlib
+        raw = b'%PDF-1.4 test-attachment-bytes\n'
+        sha = hashlib.sha256(raw).hexdigest()
+        row = self.add_material()
+        row['payload']['content_sha256'] = sha
+        row['payload']['size'] = len(raw)
+        row['sha256'] = ev.digest({k: v for k, v in row.items() if k != 'sha256'})
+        self.manifest['records']['sha256'] = ev.digest(self.manifest['records']['records'])
+        entries = self.manifest['chain']['entries']
+        entries[-1]['record_sha256'] = row['sha256']
+        entries[-1]['head'] = ev.fold(entries[-2]['head'], row['sha256'], 'eksmu')
+        self.save()
+        f = self.tmp / 'paper.pdf'
+        f.write_bytes(raw)
+        rep = ev.verify_file(self.mirror, f)
+        self.assertTrue(rep['internally_consistent'])
+        self.assertEqual(rep['matched_materials'][0]['record_id'], row['id'])
+        proof_file = self.tmp / 'proof.json'
+        proof_file.write_text(json.dumps({
+            'format': 'eksmu.record-proof.v1',
+            'record': row,
+            'seq': entries[-1]['seq'],
+            'backfilled': True,
+            'previous_head': entries[-2]['head'],
+            'following_record_sha256': [],
+            'anchor': {'id': 9, 'seq': entries[-1]['seq'], 'head': entries[-1]['head'],
+                       'state': 'confirmed', 'bitcoin': {'height': 971234}},
+        }), encoding='utf-8')
+        rep2 = ev.verify_file(proof_file, f)
+        self.assertTrue(rep2['internally_consistent'])
+        self.assertEqual(rep2['matched_materials'][0]['covering_anchors'][0]['bitcoin']['height'], 971234)
+        f.write_bytes(raw + b'!')
+        with self.assertRaises(ev.Invalid):
+            ev.verify_file(self.mirror, f)
+        with self.assertRaises(ev.Invalid):
+            ev.verify_file(proof_file, f)
+
 
 if __name__ == '__main__':
     unittest.main()

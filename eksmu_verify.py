@@ -3,6 +3,7 @@
 
     python3 eksmu_verify.py pull https://eksmu.com ./mirror   # download, then verify
     python3 eksmu_verify.py verify ./mirror                   # offline re-check
+    python3 eksmu_verify.py verify-file ./mirror ./paper.pdf  # check a local file against chain/proof
 
 This file is deliberately self-contained so that anyone can audit and run it
 without the Eksmu server code. It implements the integrity rules in SPEC.md.
@@ -280,11 +281,132 @@ def pull(origin, directory):
     return verify(root)
 
 
+def _file_digest_and_size(path):
+    target = Path(path)
+    require(target.is_file(), f'attachment file not found: {path}')
+    hasher = hashlib.sha256()
+    size = 0
+    with target.open('rb') as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b''):
+            size += len(chunk)
+            hasher.update(chunk)
+    return hasher.hexdigest(), size
+
+
+def verify_file(source, file_path):
+    """Verify a local attachment file against a mirror directory, manifest.json, or record-proof JSON."""
+    file_sha256, file_size = _file_digest_and_size(file_path)
+    src = Path(source)
+    if src.is_dir():
+        verify(src)
+        raw = (src / 'manifest.json').read_bytes()
+        doc = json.loads(raw)
+    else:
+        require(src.is_file(), f'proof or manifest not found: {source}')
+        raw = src.read_bytes()
+        require(len(raw) <= MAX_MANIFEST, 'proof or manifest too large')
+        doc = json.loads(raw)
+    if isinstance(doc, dict) and doc.get('format') in {f'{p}.record-proof.v1' for p in PREFIXES}:
+        prefix = doc['format'].split('.', 1)[0]
+        rec = doc.get('record')
+        require(isinstance(rec, dict) and rec.get('type') == 'material' and self_digest_ok(rec),
+                'record proof does not contain a valid material record')
+        p = rec.get('payload') or {}
+        require(p.get('content_sha256') == file_sha256 and p.get('size') == file_size,
+                f'file digest/size ({file_sha256}, {file_size}) does not match material record')
+        prev = doc.get('previous_head')
+        require(is_hex64(prev), 'record proof: invalid previous_head')
+        entry_head = fold(prev, rec['sha256'], prefix)
+        following = doc.get('following_record_sha256') or []
+        require(isinstance(following, list) and all(is_hex64(d) for d in following),
+                'record proof: invalid following_record_sha256')
+        cur = entry_head
+        for d in following:
+            cur = fold(cur, d, prefix)
+        anchor = doc.get('anchor')
+        covering = []
+        if anchor is not None:
+            require(isinstance(anchor, dict) and anchor.get('head') == cur and anchor.get('seq') >= doc.get('seq', 0),
+                    'record proof: folded chain head does not match anchor.head')
+            covering.append({
+                'id': anchor.get('id'),
+                'seq': anchor.get('seq'),
+                'head': anchor.get('head'),
+                'state': anchor.get('state'),
+                'bitcoin': anchor.get('bitcoin'),
+            })
+        matched = [{
+            'record_id': rec['id'],
+            'revision_id': p['revision_id'],
+            'attachment_id': p['attachment_id'],
+            'origin': p.get('origin'),
+            'derived_from_sha256': p.get('derived_from_sha256'),
+            'seq': doc.get('seq'),
+            'chain_head': entry_head,
+            'backfilled': bool(doc.get('backfilled', False)),
+            'covering_anchors': covering,
+        }]
+    else:
+        prefix = mirror_prefix(doc)
+        rows, _ = check_records(doc['records'], prefix)
+        require(doc['format'].endswith('.v2') or not any(r['type'] == 'material' for r in rows),
+                'material records require mirror v2')
+        check_chain(doc['chain'], rows, prefix)
+        check_anchors(doc['anchors'], doc['chain']['entries'])
+        entries_by_rid = {e['record_id']: e for e in doc['chain']['entries']}
+        matched = []
+        for r in rows:
+            if r['type'] != 'material':
+                continue
+            p = r['payload']
+            if p.get('content_sha256') == file_sha256 and p.get('size') == file_size:
+                entry = entries_by_rid.get(r['id'])
+                require(entry is not None, f'material record {r["id"]} missing from chain')
+                covering = [
+                    {
+                        'id': a['id'],
+                        'seq': a['seq'],
+                        'head': a['head'],
+                        'state': a['state'],
+                        'bitcoin': a.get('bitcoin'),
+                    }
+                    for a in doc['anchors']
+                    if a['seq'] >= entry['seq']
+                ]
+                matched.append({
+                    'record_id': r['id'],
+                    'revision_id': p['revision_id'],
+                    'attachment_id': p['attachment_id'],
+                    'origin': p.get('origin'),
+                    'derived_from_sha256': p.get('derived_from_sha256'),
+                    'seq': entry['seq'],
+                    'chain_head': entry['head'],
+                    'backfilled': bool(entry.get('backfilled', False)),
+                    'covering_anchors': covering,
+                })
+        require(matched, f'no committed material record matches sha256={file_sha256} and size={file_size}')
+    return {
+        'verifier': 'eksmu_verify.py',
+        'file': str(file_path),
+        'content_sha256': file_sha256,
+        'size': file_size,
+        'matched_materials': matched,
+        'internally_consistent': True,
+        'not_verified': [
+            'authorship: material records carry no author signatures yet',
+            'time: anchors are not checked against Bitcoin here; run `ots verify -f anchors/<id>.bin anchors/<id>.bin.ots`',
+            'content: byte integrity says nothing about whether any research claim in the file is correct',
+        ],
+    }
+
+
 def main(argv):
     if len(argv) == 3 and argv[1] == 'verify':
         result = verify(argv[2])
     elif len(argv) == 4 and argv[1] == 'pull':
         result = pull(argv[2], argv[3])
+    elif len(argv) == 4 and argv[1] == 'verify-file':
+        result = verify_file(argv[2], argv[3])
     else:
         print(__doc__.strip().split('\n\n')[1], file=sys.stderr)
         return 64
