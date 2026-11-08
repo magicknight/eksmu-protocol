@@ -238,6 +238,21 @@ class VerifyTests(unittest.TestCase):
         with self.assertRaises(ev.Invalid):
             ev.verify_file(proof_file, f)
 
+    def test_bundled_witness_and_anchor_files_match(self):
+        import hashlib
+        import proof_bundle as pb
+        witness_path = ROOT / 'witness' / 'chain-witness.json'
+        bundle = pb.read_json(witness_path)
+        rep = pb.verify(bundle)
+        self.assertTrue(rep['chain_hash_consistent'])
+        self.assertGreaterEqual(rep['anchors_bound_to_chain'], 4)
+        anchors_dir = ROOT / 'witness' / 'anchors'
+        for idx, anchor in enumerate(bundle['anchors'], 1):
+            stamped = (anchors_dir / f'{idx}.bin').read_bytes()
+            ots = (anchors_dir / f'{idx}.bin.ots').read_bytes()
+            self.assertEqual(stamped.hex(), anchor['head'])
+            self.assertEqual(hashlib.sha256(ots).hexdigest(), anchor['proof_sha256'])
+
 
 if __name__ == '__main__':
     unittest.main()
