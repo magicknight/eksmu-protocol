@@ -22,8 +22,18 @@ jobs:
           node-version: "20"
       - name: Install Python dependencies
         run: python -m pip install -r requirements-research.txt -r requirements-analysis.txt
+      - name: Install Pandoc (same static release as production)
+        run: |
+          curl -fsSL -o /tmp/pandoc.tgz https://github.com/jgm/pandoc/releases/download/3.10.2/pandoc-3.10.2-linux-amd64.tar.gz
+          sudo tar xzf /tmp/pandoc.tgz -C /usr/local --strip-components 1
+          pandoc --version | head -1
       - name: Run all local checks (Python, UI, deployment helpers)
-        run: python scripts/check_local.py
+        run: python scripts/check_local.py 2>&1 | tee check_local.out; test "${PIPESTATUS[0]}" -eq 0
+      - name: Upload full check logs on failure
+        if: failure()
+        run: |
+          d=$(grep -oE '/tmp/eksmu-local-check-[A-Za-z0-9_]+' check_local.out | tail -1)
+          for f in "$d"/*.log; do echo "::group::$f"; grep -E '^(FAIL|ERROR):|^Traceback|Error:' "$f" | head -60; echo "::endgroup::"; done
       - name: Verify the bundled chain witness
         run: python proof_bundle.py verify witness/chain-witness.json
 
