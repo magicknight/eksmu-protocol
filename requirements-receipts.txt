@@ -1,0 +1,2 @@
+# Reproducible tested version, not a claim to be the latest or a security audit.
+cryptography==46.0.4

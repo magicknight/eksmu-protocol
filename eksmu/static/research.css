@@ -1,0 +1,546 @@
+/* Eksmu Research & Reading Canvas CSS — "Night Signal" Terminal HUD
+   Deep dark reading console by default with light Paper mode toggle (.paper-mode).
+   Math formulas and tables scroll internally and never expand viewport width. */
+
+.work-page {
+  max-width: var(--maxw, 1440px); width: 100%; margin: 0 auto;
+  padding: 1.25rem var(--gutter) 3.5rem; flex: 1; min-width: 0;
+  box-sizing: border-box;
+}
+
+.work-article {
+  position: relative; display: flex; flex-direction: column; min-inline-size: 0; min-width: 0; max-width: 100%;
+  box-sizing: border-box;
+}
+
+.work-header {
+  margin-bottom: 0.5rem;
+}
+
+.work-readouts {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem 1.4rem;
+  padding: 0.65rem 0.95rem; margin: 0.6rem 0 0.8rem;
+  background: rgba(12, 15, 24, 0.75); border: 1px solid var(--border);
+  border-radius: var(--radius); box-sizing: border-box; max-width: 100%;
+}
+@media (max-width: 720px) {
+  /* Wrap rather than scroll: a clipped "本站第 1" with no scroll hint looked broken. */
+  .work-readouts { flex-wrap: wrap; gap: 0.45rem 1.1rem; padding-block: 0.5rem; }
+  .work-readouts::-webkit-scrollbar { display: none; }
+  .work-readouts > .readout { flex: none; }
+}
+
+.work-title {
+  font-size: clamp(1.8rem, 3.8vw, 2.7rem); line-height: 1.15;
+  margin: 0.4rem 0 0.6rem; color: var(--text); font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.work-byline { color: var(--muted); margin: 0 0 0.9rem; font-size: 0.95rem; }
+
+.work-topics, .topic-chips {
+  display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.4rem 0 0.8rem;
+}
+.topic-chips .chip {
+  min-block-size: 28px; padding: 0.2rem 0.65rem; font-size: 0.82rem;
+  background: var(--surface-2); border: 1px solid var(--border); color: var(--accent);
+}
+
+/* Action Bar */
+.work-action-bar, .work-cta {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem;
+  margin: 0.75rem 0 1.25rem; max-width: 100%; box-sizing: border-box;
+}
+.work-action-bar .action-item {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
+  min-block-size: 44px; font-size: 0.88rem; padding: 0.45rem 0.95rem;
+}
+.work-action-bar .act-ico {
+  inline-size: 16px; block-size: 16px; flex: none;
+}
+@media (max-width: 720px) {
+  .work-action-bar, .work-cta {
+    flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none;
+    gap: 0.45rem; padding-block: 0.3rem; margin: 0.5rem 0 1rem;
+    -webkit-overflow-scrolling: touch;
+  }
+  .work-action-bar::-webkit-scrollbar, .work-cta::-webkit-scrollbar { display: none; }
+  .work-action-bar .action-item, .work-cta > * {
+    flex: none; white-space: nowrap;
+  }
+}
+
+/* Author actions panel */
+.author-actions {
+  margin: 0.8rem 0 1.5rem;
+  border-inline-start: 3px solid var(--accent);
+}
+.author-acts-grid {
+  display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.75rem 0 0.25rem;
+}
+
+/* Two-column layout */
+.work-columns {
+  display: grid; grid-template-columns: minmax(0, 1fr);
+  gap: 1.5rem; margin-bottom: 2rem; width: 100%; min-width: 0;
+  box-sizing: border-box;
+}
+@media (min-width: 1100px) {
+  .work-columns {
+    grid-template-columns: minmax(0, 1fr) 380px;
+    align-items: start;
+  }
+  /* Not sticky: the sidebar is taller than the viewport, so sticking hid its lower half (S6). */
+}
+.work-reading-col {
+  min-width: 0; width: 100%;
+}
+.work-sidebar {
+  display: flex; flex-direction: column; gap: 1.25rem;
+  min-width: 0; width: 100%;
+}
+
+/* Reading Canvas */
+.reading-canvas {
+  padding: clamp(1.2rem, 3vw, 2.4rem);
+  min-width: 0; width: 100%; box-sizing: border-box;
+}
+.reading-canvas .version-notice {
+  margin-bottom: 1.2rem;
+}
+.reading-canvas .work-abstract {
+  background: var(--bg-elev); border: 1px solid var(--border-strong);
+  border-inline-start: 3px solid var(--accent);
+  border-radius: var(--radius); padding: 1.1rem 1.3rem; margin: 1.2rem 0;
+  max-width: 72ch;
+}
+.reading-canvas .work-abstract h2,
+.reading-canvas .work-authors h2,
+.reading-canvas .work-references h2 {
+  font-size: 0.88rem; font-family: var(--font-mono); letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--accent); margin: 0 0 0.5rem;
+}
+:lang(zh) .reading-canvas .work-abstract h2,
+:lang(zh) .reading-canvas .work-authors h2,
+:lang(zh) .reading-canvas .work-references h2 {
+  font-family: var(--font-sans); letter-spacing: 0.04em; text-transform: none;
+}
+.reading-canvas .work-abstract p {
+  margin: 0; line-height: 1.8; color: var(--text); max-width: 72ch;
+}
+
+.reading-canvas .work-authors {
+  margin: 1rem 0; max-width: 72ch;
+}
+.reading-canvas .work-authors ul {
+  padding-left: 1.2rem; line-height: 1.7;
+}
+
+/* Prose reading column */
+.reading-canvas .research-prose {
+  font-family: var(--serif); font-size: 1.05rem; line-height: 1.8; color: var(--text);
+  overflow-wrap: anywhere; max-width: 72ch; margin: 1.2rem 0;
+}
+.reading-canvas .research-prose h1 { font-size: 1.75rem; margin: 1.8rem 0 0.8rem; line-height: 1.25; }
+.reading-canvas .research-prose h2 { font-size: 1.38rem; margin: 1.6rem 0 0.6rem; color: var(--accent); line-height: 1.3; }
+.reading-canvas .research-prose h3 { font-size: 1.18rem; margin: 1.4rem 0 0.5rem; line-height: 1.35; }
+.reading-canvas .research-prose p { margin: 0.8rem 0 1.2rem; }
+.reading-canvas .research-prose a { color: var(--accent); text-underline-offset: 0.2em; text-decoration: underline; }
+.reading-canvas .research-prose blockquote {
+  margin: 1.2rem 0; border-inline-start: 3px solid var(--accent); padding: 0.6rem 1.2rem;
+  background: var(--bg-elev); border-radius: 0 var(--radius) var(--radius) 0; color: var(--muted);
+}
+.reading-canvas .research-prose pre {
+  font-family: var(--font-mono); font-size: 0.86rem; line-height: 1.65;
+  background: var(--bg-elev); color: var(--text); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 1rem 1.2rem; overflow-x: auto; max-width: 100%;
+}
+.reading-canvas .research-prose code { font-family: var(--font-mono); font-size: 0.88em; }
+.reading-canvas .research-prose :not(pre) > code {
+  background: var(--bg-elev); color: var(--accent); padding: 0.15rem 0.35rem;
+  border-radius: 3px; border: 1px solid var(--border);
+}
+
+.reading-canvas .work-references {
+  margin-top: 2rem; padding-top: 1.2rem; border-block-start: 1px solid var(--border);
+  max-width: 72ch;
+}
+.reading-canvas .work-references ol {
+  padding-left: 1.3rem; line-height: 1.7;
+}
+.reading-canvas .work-license {
+  margin-top: 1rem; max-width: 72ch;
+}
+
+/* Math rendering: block and inline formulas */
+.research-prose math[display="block"], .work-abstract math[display="block"] {
+  display: block; overflow-x: auto; overflow-y: hidden; padding: 0.8rem 0; font-size: 1.15em; max-width: 100%;
+}
+.research-prose math:not([display="block"]), .work-abstract math:not([display="block"]) {
+  display: inline-block; max-width: 100%; overflow-x: auto; overflow-y: hidden; vertical-align: middle; font-size: 1.05em;
+}
+
+/* Tables inside reading area */
+.research-prose table {
+  display: block; overflow-x: auto; border-collapse: collapse; margin: 1.4rem 0; max-width: 100%;
+  font-family: var(--font-sans); font-size: 0.94rem;
+}
+.research-prose th, .research-prose td {
+  border: 1px solid var(--border-strong); padding: 0.55rem 0.85rem; text-align: start;
+}
+.research-prose th { background: var(--bg-elev); color: var(--accent); font-weight: 700; }
+.research-prose tr:nth-child(even) td { background: rgba(16, 19, 29, 0.4); }
+
+.research-prose img { max-width: 100%; height: auto; border-radius: var(--radius); border: 1px solid var(--border); }
+
+/* Sidebar panels */
+.side-panel {
+  background: rgba(12, 15, 24, 0.88); padding: 1rem 1.15rem; margin-bottom: 0;
+  min-width: 0; overflow-wrap: anywhere;
+}
+.side-panel .hp-head {
+  padding-bottom: 0.5rem; margin-bottom: 0.75rem; min-block-size: 38px;
+}
+.side-panel .hp-title {
+  font-size: 0.98rem;
+}
+.side-panel .material-list {
+  padding-left: 1.2rem; margin: 0.4rem 0; font-size: 0.88rem; line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.side-panel .material-list li {
+  margin: 0.45rem 0;
+}
+.side-panel .version-list {
+  padding-left: 1.2rem; margin: 0.4rem 0; font-size: 0.88rem; line-height: 1.6;
+}
+.side-panel .version-item {
+  margin: 0.35rem 0;
+}
+.side-panel .version-item.current {
+  color: var(--accent); font-weight: 600;
+}
+.side-panel .citation {
+  font-size: 0.8rem; padding: 0.65rem 0.85rem; background: var(--bg-elev);
+  border-radius: var(--radius); border: 1px solid var(--border); margin: 0.35rem 0;
+  white-space: pre-wrap; word-break: break-all;
+}
+.side-panel .citation-bibtex {
+  font-family: var(--font-mono); font-size: 0.78rem; line-height: 1.5;
+}
+.side-panel .cite-head {
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.4rem;
+}
+.side-panel .cite-head h3 {
+  font-size: 0.86rem; margin: 0;
+}
+.side-panel .cite-block {
+  margin: 0.75rem 0;
+}
+.side-panel .cert-actions {
+  display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.75rem 0 0.5rem;
+}
+
+/* AI Analysis Section */
+#work-analysis {
+  margin-top: 2rem; margin-bottom: 2rem; width: 100%; min-width: 0;
+  box-sizing: border-box;
+}
+.analysis-report {
+  margin: 1.2rem 0; background: var(--surface-2); border: 1px solid var(--border);
+  padding: 1.1rem 1.25rem;
+}
+.analysis-read {
+  font-size: 0.84rem; margin: 0.6rem 0 1rem; padding: 0.6rem 0.85rem;
+  background: var(--bg-elev); border-radius: var(--radius);
+  border-inline-start: 2px solid var(--accent);
+}
+.analysis-findings {
+  list-style: none; padding-left: 0; margin: 0.8rem 0;
+}
+.finding-item {
+  margin: 0.9rem 0; padding: 0.85rem 1.1rem; background: var(--bg-elev);
+  border-radius: var(--radius); border: 1px solid var(--border);
+}
+.finding-item.finding-sev-blocking,
+.finding-item.finding-sev-major {
+  border-inline-start: 3px solid var(--hot);
+}
+.finding-item.finding-sev-blocking .sev-badge,
+.finding-item.finding-sev-major .sev-badge {
+  color: var(--hot); border-color: color-mix(in srgb, var(--hot) 50%, transparent);
+  background: var(--hot-soft);
+}
+.finding-item.finding-sev-minor {
+  border-inline-start: 3px solid var(--warn);
+}
+.finding-item.finding-sev-minor .sev-badge {
+  color: var(--warn); border-color: color-mix(in srgb, var(--warn) 50%, transparent);
+  background: rgba(249, 248, 113, 0.1);
+}
+.finding-item.finding-sev-note {
+  border-inline-start: 3px solid var(--muted);
+}
+.finding-item.finding-sev-note .sev-badge {
+  color: var(--muted); border-color: var(--border); background: var(--surface-2);
+}
+.finding-header {
+  display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.4rem;
+}
+.quote-status {
+  display: inline-flex; margin-top: 0.35rem; font-size: 0.76rem;
+}
+.quote-status.ok {
+  color: var(--ok); background: rgba(92, 230, 160, 0.12);
+  border-color: color-mix(in srgb, var(--ok) 40%, transparent);
+}
+.quote-status.danger {
+  color: var(--danger); background: rgba(255, 107, 107, 0.12);
+  border-color: color-mix(in srgb, var(--danger) 40%, transparent);
+}
+.finding-statement {
+  margin: 0.5rem 0; font-size: 0.94rem; line-height: 1.6;
+}
+.finding-response {
+  margin: 0.6rem 0; padding: 0.6rem 0.85rem; background: var(--surface);
+  border-radius: var(--radius); border-inline-start: 2px solid var(--accent);
+}
+.finding-reply {
+  margin-top: 0.75rem;
+}
+.finding-response-form {
+  display: grid; gap: 0.6rem; margin-top: 0.5rem; padding: 0.75rem;
+  background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border);
+}
+
+/* Discussion Section */
+#work-discussion {
+  margin-top: 2rem; margin-bottom: 3rem; width: 100%; min-width: 0;
+  box-sizing: border-box;
+}
+.comment-tree {
+  list-style: none; padding-left: 0; margin: 0.8rem 0;
+}
+.comment-node {
+  margin: 0.6rem 0;
+}
+.comment-card {
+  background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 0.85rem 1.1rem; margin: 0.5rem 0;
+}
+.comment-bar {
+  display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap;
+  margin-bottom: 0.35rem;
+}
+.comment-head {
+  font-size: 0.92rem; font-weight: 700; color: var(--text); margin: 0;
+}
+.comment-body {
+  font-size: 0.92rem; line-height: 1.6; color: var(--text); overflow-wrap: anywhere;
+  margin: 0.4rem 0 0;
+}
+.comment-children {
+  list-style: none; margin-inline-start: 1.25rem; padding-inline-start: 0.85rem;
+  border-inline-start: 2px solid var(--rule);
+}
+.work-comment {
+  margin: 1.5rem 0 1rem; background: var(--surface-2); border: 1px solid var(--border);
+  padding: 1.1rem 1.25rem;
+}
+.comment-form-foot {
+  display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-top: 0.75rem;
+}
+
+/* Citations in other components */
+.citation {
+  background: var(--bg-elev); border-radius: var(--radius); padding: 0.9rem 1.1rem;
+  font-size: 0.88rem; margin: 0.4rem 0; border: 1px solid var(--border);
+  overflow-x: auto; max-width: 100%; white-space: pre-wrap; word-break: break-all;
+}
+
+/* Workspace navigation & helpers */
+.workspace-nav {
+  position: sticky; top: calc(var(--header-h) + 2px); z-index: 25;
+  background: rgba(7, 8, 13, 0.92); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  padding: 0.5rem 0; border-block-end: 1px solid var(--border); margin: 0.8rem 0 1rem;
+  display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap;
+}
+.workspace-nav a {
+  font-size: 0.84rem; color: var(--muted); padding: 0.3rem 0.75rem; border: 1px solid var(--border-strong);
+  border-radius: 999px; text-decoration: none; background: var(--surface);
+}
+.workspace-nav a:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+
+.preview-pane {
+  padding: 1.2rem; border: 1px dashed var(--accent); border-radius: var(--radius);
+  background: var(--bg-elev); margin: 1rem 0; max-width: 100%;
+}
+.research-section {
+  margin-top: 2.2rem; padding-top: 1.4rem; border-block-start: 1px solid var(--rule);
+  scroll-margin-top: calc(var(--header-h) + 1.5rem);
+}
+.research-section > h3:first-child { margin-top: 0; }
+
+.material-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin: 1rem 0;
+}
+.material-card {
+  border: 1px solid var(--border); background: var(--bg-elev); border-radius: var(--radius);
+  padding: 1rem; min-width: 0; overflow-wrap: anywhere;
+}
+.material-card a { color: var(--accent); font-weight: 700; }
+.material-card code { font-size: 0.75rem; white-space: pre-wrap; color: var(--faint); }
+
+.collab-card {
+  border: 1px solid var(--border); border-radius: var(--radius); padding: 1.2rem; margin: 1rem 0; background: var(--bg-elev);
+}
+.collab-card h4 { font-size: 1.05rem; margin: 0 0 0.5rem; }
+.collab-event { border-inline-start: 2px solid var(--accent); padding: 0.3rem 0.8rem; margin: 0.5rem 0; }
+
+#diff-output {
+  font-family: var(--font-mono); font-size: 0.85rem; white-space: pre-wrap; overflow-wrap: anywhere;
+  margin: 1rem 0; background: var(--bg-elev); padding: 1rem; border: 1px solid var(--border);
+}
+.diff-add { background: rgba(92, 230, 160, 0.15); color: var(--ok); }
+.diff-remove { background: rgba(255, 107, 107, 0.15); color: var(--danger); }
+.diff-context { color: var(--muted); }
+
+/* =====================================================================
+   READING CANVAS — PAPER MODE (.paper-mode)
+   Only switches the reading panel to an authentic light paper surface;
+   the rest of the site stays dark. WCAG AAA (contrast > 12:1).
+   ===================================================================== */
+.paper-mode .reading-canvas,
+.detail-panel.paper-mode {
+  background: #F5F3EC !important;
+  color: #181D24 !important;
+  border-color: #DDD8CB !important;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.45) !important;
+}
+.paper-mode .reading-canvas::before,
+.paper-mode .reading-canvas::after,
+.detail-panel.paper-mode::before,
+.detail-panel.paper-mode::after {
+  display: none !important;
+}
+
+.paper-mode .reading-canvas .work-abstract {
+  background: #EAE7DD !important;
+  border-color: #D3CEBF !important;
+  border-inline-start-color: #2A7B88 !important;
+}
+.paper-mode .reading-canvas .work-abstract h2,
+.paper-mode .reading-canvas .work-authors h2,
+.paper-mode .reading-canvas .work-references h2 {
+  color: #2A7B88 !important;
+}
+.paper-mode .reading-canvas .work-abstract p { color: #181D24 !important; }
+
+.paper-mode .reading-canvas .work-authors,
+.paper-mode .reading-canvas .work-references,
+.paper-mode .reading-canvas .work-references ol,
+.paper-mode .reading-canvas .work-license {
+  color: #181D24 !important;
+}
+
+.paper-mode .reading-canvas .research-prose { color: #181D24 !important; }
+.paper-mode .reading-canvas .research-prose h1,
+.paper-mode .reading-canvas .research-prose h2,
+.paper-mode .reading-canvas .research-prose h3 { color: #0F1318 !important; }
+.paper-mode .reading-canvas .research-prose a { color: #006699 !important; }
+.paper-mode .reading-canvas .research-prose blockquote {
+  background: #EAE7DD !important; border-inline-start-color: #2A7B88 !important; color: #444E5A !important;
+}
+.paper-mode .reading-canvas .research-prose pre {
+  background: #E5E2D6 !important; color: #181D24 !important; border-color: #D3CEBF !important;
+}
+.paper-mode .reading-canvas .research-prose :not(pre) > code {
+  background: #E5E2D6 !important; color: #006699 !important; border-color: #D3CEBF !important;
+}
+.paper-mode .reading-canvas .research-prose table { color: #181D24 !important; }
+.paper-mode .reading-canvas .research-prose th {
+  background: #EAE7DD !important; color: #0F1318 !important; border-color: #DDD8CB !important;
+}
+.paper-mode .reading-canvas .research-prose td {
+  border-color: #DDD8CB !important; color: #181D24 !important;
+}
+.paper-mode .reading-canvas .research-prose tr:nth-child(even) td { background: rgba(0, 0, 0, 0.03) !important; }
+.paper-mode .reading-canvas .muted { color: #556070 !important; }
+
+@media (max-width: 640px) {
+  .work-page { padding: 1rem 0.5rem 2.5rem; }
+  .reading-canvas { padding: 1.1rem 0.85rem; }
+  .side-panel { padding: 0.85rem 0.85rem; }
+  .comment-children { margin-inline-start: 0.6rem; padding-inline-start: 0.5rem; }
+}
+
+/* =====================================================================
+   STAGE 6 (S6): WORK PAGE POLISH
+   ===================================================================== */
+
+/* 13. Paper title in a text face. */
+.work-title { font-family: var(--font-text); letter-spacing: -0.005em; font-size: clamp(1.6rem, 3.2vw, 2.35rem); line-height: 1.22; }
+.reading-canvas .work-abstract p { font-family: var(--font-text); }
+
+/* 4. In-page section nav, pinned under the header. */
+.work-toc {
+  position: sticky; top: var(--header-h); z-index: 20;
+  display: flex; gap: 0.25rem; align-items: center; overflow-x: auto; scrollbar-width: none;
+  margin: -0.4rem 0 1rem; padding: 0.35rem 0; background: rgba(7, 8, 13, 0.92);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-block-end: 1px solid var(--border);
+}
+.work-toc::-webkit-scrollbar { display: none; }
+html.fx-lite .work-toc { backdrop-filter: none; -webkit-backdrop-filter: none; background: var(--bg); }
+.work-toc a {
+  flex: none; display: inline-flex; align-items: center; gap: 0.35rem; min-block-size: 36px; padding: 0 0.75rem;
+  font-size: 0.84rem; color: var(--muted); text-decoration: none; border-block-end: 2px solid transparent;
+}
+.work-toc a:hover { color: var(--text); }
+.work-toc a.on { color: var(--accent); border-block-end-color: var(--accent); }
+.work-toc .n { font-size: 0.72rem; color: var(--faint); }
+.work-toc a.on .n { color: var(--accent); }
+:is(#work-abstract, #work-body, #work-references, #work-analysis, #work-discussion) {
+  scroll-margin-top: 2.75rem; /* adds to html scroll-padding-top, clearing the pinned nav */
+}
+
+/* 3. AI analysis and discussion share the reading column; long-form text keeps a reading measure. */
+.work-reading-col > #work-analysis, .work-reading-col > #work-discussion { margin-top: 1.5rem; margin-bottom: 0; }
+#work-analysis .hp-body, #work-discussion .hp-body { font-family: var(--font-text); }
+#work-analysis .hp-body :is(p, li, blockquote), #work-discussion .comment-body { max-inline-size: 75ch; }
+#work-analysis .hp-body p { line-height: 1.7; }
+.analysis-report { padding: 1rem 1.1rem; }
+.analysis-report .hp-title { font-size: 0.98rem; line-height: 1.4; }
+.analysis-report h4 { margin: 1.4rem 0 0.4rem; font-size: 0.95rem; color: var(--accent); }
+.claim-reasoning { color: var(--muted); font-size: 0.95em; }
+.finding-statement { font-size: 1rem; line-height: 1.7; }
+
+/* 6. Verdict chips: colour plus the words, never colour alone. */
+.analysis-findings > .claim-item {
+  margin: 0.9rem 0; padding: 0.75rem 1rem; background: var(--bg-elev);
+  border: 1px solid var(--border); border-inline-start: 3px solid var(--muted); border-radius: var(--radius);
+}
+.claim-head, .finding-header { display: flex; align-items: center; flex-wrap: wrap; gap: 0.35rem 0.5rem; margin: 0 0 0.35rem; }
+.claim-head .mono, .finding-header .mono { color: var(--text); }
+.claim-text { margin: 0.35rem 0; }
+.claim-chip, .sev-badge { font-size: 0.76rem; font-weight: 600; }
+.claim-item.claim-supported { border-inline-start-color: var(--ok); }
+.claim-supported .claim-chip { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 45%, transparent); background: rgba(92, 230, 160, 0.1); }
+.claim-item.claim-partially_supported { border-inline-start-color: var(--warn); }
+.claim-partially_supported .claim-chip { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 45%, transparent); background: rgba(249, 248, 113, 0.1); }
+.claim-item.claim-not_established { border-inline-start-color: var(--hot); }
+.claim-not_established .claim-chip { color: var(--hot); border-color: color-mix(in srgb, var(--hot) 45%, transparent); background: var(--hot-soft); }
+.claim-not_assessed .claim-chip { color: var(--muted); }
+
+@media (max-width: 720px) {
+  .work-toc { margin-inline: -0.5rem; padding-inline: 0.5rem; }
+  .analysis-report { padding: 0.8rem 0.75rem; }
+  .analysis-findings > .claim-item, .finding-item { padding: 0.65rem 0.75rem; }
+}
+
+/* Quoted passages in findings often carry raw LaTeX with no break points; keep them inside the card. */
+.finding-item blockquote {
+  margin: 0.5rem 0; padding: 0.45rem 0.8rem; border-inline-start: 2px solid var(--border-strong);
+  background: var(--surface); color: var(--muted); font-size: 0.92em; overflow-wrap: anywhere;
+}
+/* No dead band above the abstract when nothing precedes it. */
+.reading-canvas > .work-abstract:first-child { margin-top: 0; }

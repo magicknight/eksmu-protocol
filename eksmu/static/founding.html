@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#07080D"><title>Eksmu · 创立期自愿形式化复核</title><!--i18n:head--><link rel="icon" href="/favicon.svg" type="image/svg+xml"><meta name="description" content="发表研究，自愿参加固定版本的 Lean 预检，准备可复核的证明材料。"><link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/research.css"><script src="/shell.js" defer></script></head>
+<body>
+<div class="app-shell">
+<a class="skip-link" href="#main">跳到主要内容</a>
+<header class="hd topbar sh-top"><div class="hd-in topbar-inner"><a class="brand" href="/" aria-label="Eksmu 首页"><span class="brand-mark"><svg viewBox="0 0 64 64" aria-hidden="true"><rect x="2" y="2" width="60" height="60" rx="8" fill="#0C0F18" stroke="#2DE2E6" stroke-width="2.5"/><text x="9" y="49" font-family="'Chakra Petch',Georgia,'Times New Roman',serif" font-style="italic" font-size="46" font-weight="700" fill="#E6E9F2">x</text><text x="36" y="27" font-family="'Chakra Petch',Georgia,'Times New Roman',serif" font-style="italic" font-size="28" font-weight="700" fill="#2DE2E6">μ</text></svg></span><span class="name brand-name glitch" data-text="Eksmu">Eksmu</span></a>
+<button type="button" class="cmd" id="cmd-trigger" aria-label="搜索作品、命令 (Ctrl+K / /)" aria-haspopup="dialog"><span class="cmd-gt mono" aria-hidden="true">&gt;</span><svg class="cmd-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="m15 15 5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span class="cmd-txt">搜索作品、命令…</span><span class="cmd-keys" aria-hidden="true"><span class="kbd">Ctrl</span><span class="kbd">K</span></span></button>
+<div class="tools"><button class="tool fx" id="fx-toggle" type="button" aria-pressed="true" aria-label="视觉效果" title="切换视觉效果 (FX / LITE)"><span class="dot hot" aria-hidden="true"></span><span class="fx-txt">FX</span></button><!--i18n:switch--><a class="tool account-link" href="/account" aria-label="账户"><svg class="si-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.8" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M4.5 20c.9-3.6 3.8-5.6 7.5-5.6s6.6 2 7.5 5.6" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><span class="si-txt">账户</span></a></div></div></header>
+<aside class="rail sh-rail" aria-label="控制台导航">
+<nav class="sec topnav" aria-label="主要导航">
+<a href="/" class="it" title="发现" aria-label="发现"><span class="no mono" aria-hidden="true">01</span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.5 12 4l8 7.5V20h-5.5v-5h-5v5H4z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"/></svg><span class="lb">发现</span></a>
+<a href="/publish" class="it" title="发表" aria-label="发表"><span class="no mono" aria-hidden="true">02</span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16m-8-8h16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg><span class="lb">发表</span></a>
+<a href="/activity" class="it" title="动态" aria-label="动态"><span class="no mono" aria-hidden="true">03</span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h3l3-7 4 14 3-7h3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"/></svg><span class="lb">动态</span></a>
+</nav>
+<div class="rail-group"><p class="rail-group-title">关于</p><nav class="rail-subnav" aria-label="关于导航">
+<a href="/participation.html" class="it sub-it" title="参与说明" aria-label="参与说明"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M12 8v4m0 4h.01" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg><span class="lb">参与说明</span></a>
+<a href="/founding.html" class="it sub-it" title="创立期活动" aria-label="创立期活动"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg><span class="lb">创立期活动</span></a>
+<a href="/openness.html" class="it sub-it" title="开放核验" aria-label="开放核验"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="11" width="18" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M7 11V7a5 5 0 0 1 10 0v4" fill="none" stroke="currentColor" stroke-width="1.7"/></svg><span class="lb">开放核验</span></a>
+</nav></div>
+<div class="rail-foot"><button type="button" class="keys" id="rail-keys-btn" title="快捷键说明" aria-label="快捷键说明"><span class="kbd">?</span><span class="keys-t">快捷键</span></button></div>
+</aside>
+<main id="main" class="sh-main page-main">
+<section class="page-hero"><div class="page-hero-inner"><span class="eyebrow mono">EKSMU · FOUNDING ACTIVITY</span><h1>把证明写下来，<br>把复核接起来。</h1><p class="lede">创立期自愿形式化复核活动</p><nav class="hero-nav"><a href="/">返回发现</a><a href="/participation.html">参与说明</a><a href="/openness.html">开放核验</a></nav></div></section>
+
+<section class="panel hp" id="founding-origin">
+<header class="hp-head section-head"><div class="hp-titles"><span class="hp-code mono">01 · ORIGIN</span><h2 class="hp-title">从可检查的一步开始</h2></div><span class="badge">自愿参与</span></header>
+<div class="hp-body">
+<p>你可以发表完整研究、特例、构造、计算或失败的尝试。愿意参加形式化活动的作者，可以为明确的正文版本上传 Lean 文件，选择要检查的声明。未参加、检查失败或尚无形式化证明，都不影响发表与正常讨论。</p>
+<p>活动由 Eksmu 独立发起。孙宇晨数学奖的公开题目和工具为我们提供参考；本站与主办方没有已确认的合作关系，本站预检报告不代表官方验收或获奖。</p>
+</div></section>
+
+<section class="panel hp" id="founding-steps">
+<header class="hp-head section-head"><div class="hp-titles"><span class="hp-code mono">02 · STEPS</span><h2 class="hp-title">当前可以怎样参加</h2></div><span class="badge">四步流程</span></header>
+<div class="hp-body">
+<ol>
+<li>在研究工作区发表你有权公开的材料，保存固定版本及所选附件。</li>
+<li>在该版本的“自愿参加私有 Lean 预检”面板选择 .lean 附件、目标声明和问题来源，并明确授权本站本机检查。</li>
+<li>维护者安排受限的离线单文件检查。结果提供给作者，说明检查对象、工具版本、运行结果与未检查的范围。</li>
+<li>作者根据报告整理材料，并按奖项主办方的最新规则自行决定是否提交。</li>
+</ol>
+<p class="notice">在公开站点，上传到研究版本的所有附件都可被读者读取，包括 .lean 原文件。私有的是报名资料和检查报告，不是上传的源文件。当前预检需要维护者手动启动，没有实时完成承诺；它不是带外部依赖的完整项目验证，也不会自动向主办方发送文章、代码或报名资料。</p>
+</div></section>
+
+<section class="panel hp" id="founding-reading">
+<header class="hp-head section-head"><div class="hp-titles"><span class="hp-code mono">03 · READING</span><h2 class="hp-title">读报告时区分三件事</h2></div><span class="badge">核验边界</span></header>
+<div class="hp-body">
+<ul>
+<li>工具是否实际运行、选定声明是否通过机械检查。</li>
+<li>声明是否准确表达原题，假设与结论是否覆盖所声称的结果。</li>
+<li>是否满足主办方独立审核、公示和申领要求。</li>
+</ul>
+<p>第一项成功不能自动推出另外两项。有限计算、特例和演示文件都应明确标识自己的范围。</p>
+<p>外部规则以<a href="https://www.hejustinsun.com/zh/prize" rel="noreferrer">数学奖官网</a>与<a href="https://github.com/TheJustinSunPrize/awards" rel="noreferrer">官方公开仓库</a>为准。不同官方页面如有表述差异，须在正式提交前向主办方确认。</p>
+<div class="work-actions"><a class="btn primary" href="/publish">开始发表</a><a class="btn secondary" href="/">返回发现</a></div>
+</div></section>
+
+<footer class="ft site-footer"><div class="ft-in footer-inner wrap"><div class="ft-brand"><span class="ft-name glitch" data-text="Eksmu">Eksmu</span><p class="ft-tag footer-motto">自由参与 · 具体证据 · 多元判断 · 可迁移记录</p></div><nav class="ft-links footer-links" aria-label="页脚导航"><a href="/participation.html">参与说明</a><a href="/founding.html">创立期活动</a><a href="/openness.html">开放核验</a><a href="/openness.html#open-tech">开源源码</a></nav><p class="ft-credit">从一个人的好奇，到一群人的共同探索。</p></div></footer>
+</main>
+<nav class="tabbar" aria-label="移动端底部导航">
+<a href="/" class="tab" aria-label="发现"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.5 12 4l8 7.5V20h-5.5v-5h-5v5H4z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"/></svg><span>发现</span></a>
+<a href="/publish" class="tab" aria-label="发表"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16m-8-8h16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg><span>发表</span></a>
+<a href="/activity" class="tab" aria-label="动态"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h3l3-7 4 14 3-7h3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"/></svg><span>动态</span></a>
+<a href="/account" class="tab" aria-label="账户"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.8" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M4.5 20c.9-3.6 3.8-5.6 7.5-5.6s6.6 2 7.5 5.6" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><span>账户</span></a>
+</nav>
+</div>
+</body></html>

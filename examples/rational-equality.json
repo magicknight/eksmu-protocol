@@ -1,0 +1,8 @@
+{
+  "left": {
+    "op": "add",
+    "left": {"op": "rational", "numerator": "1", "denominator": "3"},
+    "right": {"op": "rational", "numerator": "1", "denominator": "6"}
+  },
+  "right": {"op": "rational", "numerator": "1", "denominator": "2"}
+}

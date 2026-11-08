@@ -1,0 +1,46 @@
+{
+  "format": "oic.demo-publication-scenario.v1",
+  "demo": true,
+  "author": "演示作者（自动化测试身份）",
+  "reader": "演示读者（自动化测试身份）",
+  "kind": "computation",
+  "versions": [
+    {
+      "directory": "v1",
+      "upper_inclusive": 1000,
+      "title": "演示：有限哥德巴赫见证的生成与逐行复查",
+      "attachments": [
+        "v1/paper.md",
+        "v1/paper.tex",
+        "v1/paper.pdf",
+        "v1/witnesses.csv",
+        "v1/check-report.json",
+        "v1/metadata.json",
+        "generate.py",
+        "check.py"
+      ]
+    },
+    {
+      "directory": "v2",
+      "upper_inclusive": 10000,
+      "title": "演示：有限哥德巴赫见证的生成与逐行复查",
+      "attachments": [
+        "v2/paper.md",
+        "v2/paper.tex",
+        "v2/paper.pdf",
+        "v2/witnesses.csv",
+        "v2/check-report.json",
+        "v2/metadata.json",
+        "generate.py",
+        "check.py"
+      ]
+    }
+  ],
+  "comment": "演示讨论：请扩展到 10000，并说明包含端点和漏行检查；旧版评论应留在 v1。",
+  "revision_note": "演示修订：回应 v1 评论，上界由 1000 扩至 10000，新增 4500 行见证；范围仍有限。",
+  "author_note": "演示作者说明：v2 已回应 v1 的范围问题；请按引用所选版本下载对应材料。",
+  "late_material": {
+    "filename": "later-note.txt",
+    "body": "演示后添说明：此文件产生于 v1 第一份快照之后，不能进入旧快照。"
+  }
+}

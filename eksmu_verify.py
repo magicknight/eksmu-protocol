@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Independent verifier for Eksmu public mirrors. Python 3.9+, standard library only.
 
     python3 eksmu_verify.py pull https://eksmu.com ./mirror   # download, then verify
     python3 eksmu_verify.py verify ./mirror                   # offline re-check
     python3 eksmu_verify.py verify-file ./mirror ./paper.pdf  # check a local file against chain/proof
+    python3 eksmu_verify.py verify-source https://eksmu.com .  # compare the site's /api/source with a checkout
 
 This file is deliberately self-contained so that anyone can audit and run it
 without the Eksmu server code. It implements the integrity rules in SPEC.md.
@@ -435,6 +437,55 @@ def verify_file(source, file_path):
     }
 
 
+def source_tree_digest(files):
+    """SHA-256 of sha256sum-style lines ("<hex>  <path>\\n"), sorted by path bytes (SPEC: source attestation)."""
+    lines = ''.join(f'{files[p]}  {p}\n' for p in sorted(files, key=lambda s: s.encode('utf-8')))
+    return hashlib.sha256(lines.encode('utf-8')).hexdigest()
+
+
+def verify_source(source, checkout):
+    """Compare an eksmu.source-attestation.v1 document (site URL or JSON file) with a local checkout."""
+    if source.startswith(('https://', 'http://')):
+        parts = urllib.parse.urlsplit(source)
+        loopback = parts.hostname in {'127.0.0.1', 'localhost', '::1'}
+        require(parts.scheme == 'https' or loopback, 'origin must use https')
+        require(parts.path in {'', '/'} and not parts.query and parts.hostname, 'origin must be a site root')
+        raw = fetch(f'{parts.scheme}://{parts.netloc}/api/source', MAX_MANIFEST)
+    else:
+        raw = Path(source).read_bytes()
+        require(len(raw) <= MAX_MANIFEST, 'attestation too large')
+    doc = json.loads(raw)
+    require(isinstance(doc, dict) and doc.get('format') == 'eksmu.source-attestation.v1',
+            'not an eksmu.source-attestation.v1 document')
+    require(doc.get('available') is True, f'site reports no source attestation: {doc.get("reason")}')
+    files = doc.get('files')
+    require(isinstance(files, dict) and files and all(isinstance(k, str) and is_hex64(v) for k, v in files.items()),
+            'attestation: invalid files map')
+    require(source_tree_digest(files) == doc.get('tree_sha256'), 'attestation: tree_sha256 does not match its own files map')
+    root = Path(checkout).resolve()
+    differing, missing = [], []
+    for rel, sha in sorted(files.items()):
+        path = (root / rel).resolve()
+        require(path == root or root in path.parents, f'attestation path escapes checkout: {rel}')
+        if not path.is_file():
+            missing.append(rel)
+        elif hashlib.sha256(path.read_bytes()).hexdigest() != sha:
+            differing.append(rel)
+    require(not differing and not missing,
+            f'checkout differs from the running site: differing={differing}, missing_locally={missing}')
+    return {
+        'verifier': 'eksmu_verify.py',
+        'tree_sha256': doc['tree_sha256'],
+        'files': len(files),
+        'site_reports_drift_from_manifest': bool(doc.get('mismatched') or doc.get('missing')),
+        'matches_checkout': True,
+        'not_verified': [
+            'the attestation is self-reported by the operator; it cannot prove which bytes the server process executes',
+            'only the runtime files listed in the deploy manifest are covered, not the OS, interpreter or dependencies',
+        ],
+    }
+
+
 def main(argv):
     if len(argv) == 3 and argv[1] == 'verify':
         result = verify(argv[2])
@@ -442,6 +493,8 @@ def main(argv):
         result = pull(argv[2], argv[3])
     elif len(argv) == 4 and argv[1] == 'verify-file':
         result = verify_file(argv[2], argv[3])
+    elif len(argv) == 4 and argv[1] == 'verify-source':
+        result = verify_source(argv[2], argv[3])
     else:
         print(__doc__.strip().split('\n\n')[1], file=sys.stderr)
         return 64

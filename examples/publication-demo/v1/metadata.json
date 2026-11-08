@@ -1,0 +1,19 @@
+{
+  "format": "oic.paper-metadata.v1",
+  "abstract": "私有发表流程演示。为 4 至 1000（含端点）的每个偶数生成一对素数见证；筛法生成与逐项试除检查分离，共 499 行通过有限检查。不宣称一般猜想的证明、Lean 验证、独立人员审稿或官方认可。",
+  "authors": [
+    {
+      "name": "演示作者（自动化测试身份）",
+      "contribution": "由 AI 助手编写论文、两种算法与修订情境；环境实际执行计算。署名仅对应自动化发表身份，不冒充真实研究者。"
+    }
+  ],
+  "references": [
+    "TheJustinSunPrize/awards, JSP-000008, catalog-0001-0100.md, commit bcf1866ea9a4ae82b32bd95b82ffd812b9ee80d2: https://github.com/TheJustinSunPrize/awards/blob/bcf1866ea9a4ae82b32bd95b82ffd812b9ee80d2/problems/catalog-0001-0100.md#JSP-000008",
+    "本项目 M01 探索卡；examples/publication-demo 中的生成器、检查器及实际计算材料。"
+  ],
+  "license": "",
+  "provenance": {
+    "source": "本项目私有演示材料；不是导入外部论文。",
+    "prior_publication_date": ""
+  }
+}

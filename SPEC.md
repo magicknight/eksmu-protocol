@@ -1,6 +1,7 @@
-# Eksmu public record formats — v1 and experimental v2
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+# Eksmu public record formats — v1 and v2
 
-Status: v1 is the deployed mirror format; the v2 specification and verifier support are experimental and do not indicate that attachment commitments are deployed or anchored. Since the 2026-10-29 rename, current formats use the `eksmu.` prefix; older mirrors use `oic.`. One mirror uses the same prefix throughout, including the record-chain hash domain. Examples below use `eksmu.`; the equivalent historical `oic.` v1 formats remain supported. A breaking change gets a new format name.
+Status: v1 and v2 are deployed production formats (`eksmu.public-mirror.v2` is emitted when attachment `material` commitments or compliance `redactions` are present; `eksmu.public-mirror.v1` is emitted when neither is present). Since the 2026-10-29 rename, current formats use the `eksmu.` prefix; older mirrors use `oic.`. One mirror uses the same prefix throughout, including the record-chain hash domain. Examples below use `eksmu.`; the equivalent historical `oic.` v1 formats remain supported. A breaking change gets a new format name.
 
 The purpose of these formats is that **anyone can copy the public record of an Eksmu site and check, without trusting the operator, that nothing was silently edited, reordered or back-dated after it was anchored.** They do not encode any judgement about research quality.
 
@@ -101,14 +102,13 @@ A **response** (`eksmu.analysis-response.v1`, self digest): `report_id`, `findin
 Verification: report digest; revision digest binding; finding ids in order; responses target an existing finding; `is_author` flag correct.
 
 ## 8. Planned
-- Author-run analyses (bring your own model key, run locally, upload the report labelled as not reproduced by the site).
 - Snapshots and notices folded into the record chain.
 - Author signatures (server-held by default, exportable), with old records shown as "claimed at migration", never back-signed.
 - Incremental mirror sync by chain sequence.
 
-## 9. Experimental mirror v2: attachment commitments
+## 9. Mirror v2: attachment commitments and compliance redactions
 
-**Experimental format.** Publication of this specification and verifier support does not imply production migration, automatic reconciliation, or Bitcoin anchoring. The experimental mirror format is `<prefix>.public-mirror.v2`, retaining the v1 envelope and `<prefix>.record-chain.v1` folding algorithm. Existing v1 mirrors remain valid. A v1 mirror MUST NOT contain a `material` record; old v1-only clients must reject v2 rather than mistake it for v1.
+The mirror v2 format is `<prefix>.public-mirror.v2`, retaining the v1 envelope and `<prefix>.record-chain.v1` folding algorithm while adding committed `material` records and optional `redactions` tombstones. Existing v1 mirrors remain valid. A v1 mirror MUST NOT contain a `material` record; old v1-only clients must reject v2 rather than mistake it for v1.
 
 A `material` record uses the ordinary record envelope (§2), with this exact payload:
 
@@ -118,14 +118,38 @@ A `material` record uses the ordinary record envelope (§2), with this exact pay
  "origin":"upload", "derived_from_sha256":null}
 ```
 
-`size` is a non-negative integer. `derived_from_sha256` is null or a lowercase SHA-256 digest. The revision must precede the record, and its author must match the record's actor. The experimental reconciler verifies the bytes and size before committing. It places no filename in the record; the digest itself can still reveal a guessed file. `origin` describes attachment provenance and does not itself prove how it was produced. A derived digest is a claimed link, not independent proof of a build.
+`size` is a non-negative integer. `derived_from_sha256` is null or a lowercase SHA-256 digest. The revision must precede the record, and its author must match the record's actor. The reconciler verifies the bytes and size before committing. It places no filename in the record; the digest itself can still reveal a guessed file. `origin` describes attachment provenance and does not itself prove how it was produced. A derived digest is a claimed link, not independent proof of a build.
 
 The mirror verifier checks the material record's schema, author and revision reference, record digest, chain membership, and anchor binding. `verify` does not fetch attachment bytes; a reader who has downloaded a file can run `python3 eksmu_verify.py verify-file <mirror_or_record_proof> <file>` to verify the local file's SHA-256 and byte size against committed `material` records and their covering anchors. `complete` refers to the mirror's listed snapshot packages, not completeness or availability of all attachments. A claimed anchor status is not a Bitcoin verification; an independent OpenTimestamps verification is still required. A matched file digest plus a confirmed anchor covering the material entry provides an upper bound on existence of those bytes, not identity, originality, quality, or public availability.
 
-The experimental backfill operation marks entries `backfilled: true` and never claims a timestamp earlier than a subsequent covering anchor. Upload and reconciliation are separate steps.
+The backfill operation marks entries `backfilled: true` and never claims a timestamp earlier than a subsequent covering anchor. Upload and reconciliation are separate steps.
 
 Optional v2 manifest field `redactions: [{"attachment_id", "record_id", "revision_id", "content_sha256", "reason_code", "reason", "decided_at"}]` records compliance/privacy attachment byte removals without altering `records` or `record_chain`. Because `material` records store only `{attachment_id, revision_id, size, content_sha256, origin, derived_from_sha256}` and no file bytes or filenames, removing an attachment's raw bytes from storage preserves every historical chain hash and Bitcoin anchor intact.
 
 ## 10. Digest-only chain witness (`eksmu.chain-witness.v1`)
 
 `proof_bundle.py` creates and verifies `{"format": "eksmu.chain-witness.v1", "chain_format": "eksmu.record-chain.v1", "entries": [{"record_sha256", "head"}], "anchors": [{"seq", "head", "proof_sha256"}]}` alongside the public `.bin` and `.bin.ots` files in `witness/anchors/`, enabling third parties to verify chain continuity and OpenTimestamps Bitcoin proofs independently of the origin server.
+
+## 11. Source attestation (`eksmu.source-attestation.v1`)
+
+`GET /api/source` lets a reader match the code a site runs to a commit of the public repository. At start-up the server hashes, as they exist on disk, the runtime files listed in `deployment/google-cloud/source-manifest.json` and returns:
+
+```json
+{"format": "eksmu.source-attestation.v1", "available": true, "self_reported": true,
+ "repository": "https://github.com/magicknight/eksmu-protocol", "license": "AGPL-3.0-or-later",
+ "version": "0.2.0", "manifest_sha256": "<SHA-256 of the manifest file bytes>",
+ "tree_sha256": "<see below>", "files_total": 76, "files_matching_manifest": 76,
+ "mismatched": [], "missing": [], "files": {"<path>": "<SHA-256 of file bytes>"},
+ "not_verified": ["..."]}
+```
+
+`tree_sha256` is the SHA-256 of the UTF-8 lines `<hex>  <path>\n` (two spaces, as printed by `sha256sum`) sorted by path bytes. From a checkout it can be recomputed with coreutils:
+
+```bash
+jq -r '.files | keys[]' source.json > paths.txt
+sha256sum $(cat paths.txt) | LC_ALL=C sort -k2 | sha256sum
+```
+
+`python3 eksmu_verify.py verify-source https://eksmu.com <checkout>` fetches the document, checks `tree_sha256` against its own `files` map, and requires every listed file in the checkout to have the same SHA-256. `mismatched`/`missing` report drift between the files on disk and the manifest shipped with them.
+
+Limits: the attestation is the operator's own statement. It detects accidental drift and lets anyone point at the exact public commit, but a dishonest operator could serve one tree and report another; it says nothing about the operating system, interpreter, dependencies or reverse proxy. If the installation has no manifest, the response is `{"available": false, "reason": ...}`.

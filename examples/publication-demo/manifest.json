@@ -1,0 +1,24 @@
+{
+  "format": "oic.demo-materials.v1",
+  "demo": true,
+  "files": {
+    "README.md": "6d6e0e178d116988e3eef6b7b5860b2ea3141d146e50833c2cb4216b17fe6d8f",
+    "check.py": "ce7b9745b1241d45d79283747c926eca5ecc0668b8e58c9c4d19291c184c8e40",
+    "generate.py": "2681bfdf68454600ca6c2b7d678c2a1be46b079350cab7c2ef97e8a7317798b4",
+    "render.py": "f291b7f0640b97d126b178180c5134b918a697771d46d2a5d99ed810105b043a",
+    "reproduce.py": "658e0266c4c490fb58602c5357e129b2087fa9f7f59173d17667fbc3fed1fedc",
+    "scenario.json": "b6f23a38b99b08762072f5e3f429d11cbdc69d629542cf66d1d9d9b19cc82876",
+    "v1/check-report.json": "420fc7f12244f591cc724182372fee697ae471864ec6827b12f56fb6421eac79",
+    "v1/metadata.json": "40f52e015a5ebffe8bb63fb4593c8e127dbf94ccc134b1f5755820faffaeab27",
+    "v1/paper.md": "4a9ec9302a04636fb24e7e97e7836d09499ee75e0e08c0bc6340d9bb0cb54e6f",
+    "v1/paper.pdf": "1a9d15b09bc464035ebdff11c68a668c82e9489f29c25fa20dcc60010242b849",
+    "v1/paper.tex": "ac2f60ebc1d14631722d1bd976660b877aeee243903513b358a4f2f6ae1303a2",
+    "v1/witnesses.csv": "0f6c4ad3144bc21f96e080d652d29d715741aee61d310b902eb4024a34cfbda6",
+    "v2/check-report.json": "ed7c182c3d4f80fb3dd357fac63c7972323a0f4eeb8ff5c1ec3e2132326186e6",
+    "v2/metadata.json": "3954e452c3d7bdcbc9301520b0b9f3d994ec6d3e86ab45674a99ade95e5914e8",
+    "v2/paper.md": "08d8c62d43aae3f4d0f705d5a7ebc8288b10c1aec82af4812aeecf1c42742a23",
+    "v2/paper.pdf": "d1dbd8b0d04b6769420cefe13a1a7afc6aa006dceea2ca94669cbbb0b64fcf47",
+    "v2/paper.tex": "135f437594f3c5c51a287ff4ec6d542f51fa0a5980753eacf578c9aebfab641f",
+    "v2/witnesses.csv": "be3f353eae71d7ca535c9a276247ad857b0b692f096a2446f208300883de5a7b"
+  }
+}

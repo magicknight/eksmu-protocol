@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """Run with: python3 -m unittest discover tests"""
 import json
 import shutil

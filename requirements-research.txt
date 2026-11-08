@@ -1,0 +1,4 @@
+# Full local Alpha 2 environment; Pandoc is a separate optional reading executable.
+-r requirements-receipts.txt
+-r requirements-anchor.txt
+Pillow==12.3.0

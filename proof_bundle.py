@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Create and check a minimal local chain witness from a verified v1 mirror.
+# SPDX-License-Identifier: Apache-2.0
+"""Create and check a minimal local chain witness from a verified v1/v2 mirror.
 
 Usage: python tools/proof_bundle.py create MIRROR_DIR NEW_FILE
        python tools/proof_bundle.py verify FILE [--checkpoint-seq N --checkpoint-head HEX]

@@ -1,0 +1,202 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\PassOptionsToPackage{dvipsnames,svgnames,x11names}{xcolor}
+\documentclass[
+  11pt,
+  fontset=fandol]{ctexart}
+\usepackage{xcolor}
+\usepackage[margin=25mm]{geometry}
+\usepackage{amsmath,amssymb}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{longtable,booktabs,array}
+\usepackage{caption}
+\captionsetup[table]{skip=6pt}
+\newcounter{none} % for unnumbered tables
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\emergencystretch=2em
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+% fallback for those not using the hyperref driver hyperxmp:
+\makeatletter
+\@ifundefined{xmpquote}{\newcommand{\xmpquote}[1]{#1}}{}
+\makeatother
+\hypersetup{
+  colorlinks=true,
+  linkcolor={Maroon},
+  filecolor={Maroon},
+  citecolor={Blue},
+  urlcolor={Blue},
+  pdfcreator={LaTeX via pandoc}}
+
+\author{}
+\date{}
+
+\begin{document}
+
+\section{演示：有限哥德巴赫见证的生成与逐行复查}\label{ux6f14ux793aux6709ux9650ux54e5ux5fb7ux5df4ux8d6bux89c1ux8bc1ux7684ux751fux6210ux4e0eux9010ux884cux590dux67e5}
+
+版本 v1 · 包含端点的区间 {[}4, 1000{]} · 私有软件验收材料
+
+署名：演示作者（自动化测试身份）。本文、程序及修订情境由 AI
+助手为本项目编写；计算结果来自所附程序的实际运行。未声称有真实独立审稿人参与，也不代表用户提交数学研究或申请奖金。未声明对外许可。
+
+\subsection{摘要}\label{ux6458ux8981}
+
+我们为 4 至 1000 的每个偶数记录一对素数，其和等于该偶数。筛法生成 499
+行见证，另一份不导入筛法程序的试除检查器核对完整覆盖、端点、素性与加法。全部
+499
+行通过有限见证检查。本文的目的在于提供一份可阅读、可复算、可讨论并能固定材料版本的完整发表演示；不宣称证明一般哥德巴赫猜想，不包含
+Lean 证明或官方验收。
+
+\subsection{1. 问题与范围}\label{ux95eeux9898ux4e0eux8303ux56f4}
+
+设 \(E_U=\{n\in\mathbb{Z}:4\leq n\leq U,\ n\text{ 为偶数}\}\)，本版取
+\(U=1000\)。目标是为每个 \(n\in E_U\) 给出素数 \(p,q\)，满足
+\(2\leq p\leq q\) 且 \(p+q=n\)。目标数的个数为
+\(U/2-1=499\)。两端均包含，特别是允许 \(p=q=2\)。
+
+选题来自项目 M01 探索卡及参考资料 {[}1{]} 中的
+JSP-000008。本文限定了有限上界；一般问题涉及所有大于 2
+的偶数。有限清单无法排除更大数上的失败，因而不能把本次成功外推成一般命题的证明。
+
+\subsection{2. 生成方法}\label{ux751fux6210ux65b9ux6cd5}
+
+\texttt{generate.py} 先把 0、1 标为非素数，从 2
+起筛去每个候选素数的倍数。对于筛选位置 \(p\)，从 \(p^2\) 开始：小于
+\(p^2\) 的合数倍数已有较小素因子。只需筛至平方根的整数部分，因为任何合数
+\(m=ab\) 都存在一个不超过 \(\sqrt{m}\) 的因子。
+
+随后按递增顺序遍历每个目标偶数，对 \(2\leq p\leq n/2\) 搜索并令
+\(q=n-p\)，记录第一对两项均被标为素数的结果。没有找到时程序报错，不能把遗漏当作成功。第一对只是生成时的确定性选择；本文不主张最优性，也不统计全部表示数。
+
+输出为 ASCII CSV，表头严格为 \texttt{n,p,q}，每个偶数一行，按 n
+递增，不附时间戳或机器名称。文件以 LF 换行，便于按字节复算。
+
+\subsection{3.
+与生成器分开的复查}\label{ux4e0eux751fux6210ux5668ux5206ux5f00ux7684ux590dux67e5}
+
+\texttt{check.py}
+不导入生成器，也不使用其筛表。检查器由文件外给定上界，要求恰有 499
+行，且第 k 行的 n
+等于对应的目标偶数；这样可发现漏行、重复、错序和错误范围。对每行再核对
+\(2\leq p\leq q\leq n\)、\(p+q=n\)，并分别对 p、q 做整数试除。
+
+试除依次检查 \(d=2,3,\ldots\)，直到 \(d^2>x\)。若 \(x\geq2\)
+且没有整除因子，则由上述因子界可判定 x
+为素数。这里避免以浮点平方根作为终止条件。两个程序采用不同判定路径，但同由本次
+AI 工作流程编写；不能称为独立人员的复核或形式化认证。
+
+\subsection{4. 结果与材料}\label{ux7ed3ux679cux4e0eux6750ux6599}
+
+实际运行生成了 499 行，试除检查器接受全部见证。首尾与小例子见下表。
+
+完整数据见 \texttt{witnesses.csv}。
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}rrrl@{}}
+\toprule\noalign{}
+n & p & q & 检查 \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+4 & 2 & 2 & 2 + 2 = 4 \\
+6 & 3 & 3 & 3 + 3 = 6 \\
+10 & 3 & 7 & 3 + 7 = 10 \\
+1000 & 3 & 997 & 3 + 997 = 1000 \\
+\end{longtable}
+}
+
+机器报告 \texttt{check-report.json}
+写明对象上界、数量、数据摘要、检查方法及未验证事项。数据的 SHA-256 为：
+
+\begin{verbatim}
+0f6c4ad3144bc21f96e080d652d29d715741aee61d310b902eb4024a34cfbda6
+\end{verbatim}
+
+附件包括本文 Markdown、TeX、PDF、CSV、机器报告，以及两份 Python
+源码。正文中的摘要用于确定数据对象；它本身不证明计算正确、作者身份、发现先后或外部发表时间。
+
+\subsection{5.
+复算与讨论入口}\label{ux590dux7b97ux4e0eux8ba8ux8bbaux5165ux53e3}
+
+将本版附件放在同一目录后，在可审阅的本地环境使用 Python 3 执行：
+
+\begin{verbatim}
+python generate.py --upper 1000 > regenerated.csv
+python check.py regenerated.csv --upper 1000
+python check.py witnesses.csv --upper 1000
+\end{verbatim}
+
+两份数据的报告应具有相同摘要、499 个偶数和
+\texttt{finite\_witness\_check:\ PASS}。平台仅保存附件，不会因上传这些命令或代码而执行它们。
+
+可以继续检查：若删去最后一行、把 10 的见证改为 4 与 6、或将声明范围改为
+1002，检查器是否拒绝；更大范围是否仍有见证。下一版可扩大到 M01 卡建议的
+10000，同时保留本版数据与讨论，避免将修订后的范围回填进旧记录。
+
+\subsection{6.
+局限与贡献记录}\label{ux5c40ux9650ux4e0eux8d21ux732eux8bb0ux5f55}
+
+本次是小规模穷举和软件发表流程演示，没有新算法或原创定理声明。程序、解释和运行环境仍可能有共同错误；不同实现不能消除所有信任假设。这里未运行
+Lean、没有连接奖项验证服务，没有进行公共链存证，也没有请求官方认可。研究是否值得继续，应允许读者自行讨论，检查是否成功不构成发表资格。
+
+演示作者账户负责发表与修订；演示读者账户仅代表自动化验收中的另一会话。实际贡献为
+AI 编写材料、环境中执行计算和自动化操作；未虚构外部合作者。
+
+\subsection{参考资料}\label{ux53c2ux8003ux8d44ux6599}
+
+{[}1{]}
+TheJustinSunPrize/awards，\texttt{problems/catalog-0001-0100.md}，JSP-000008，固定提交
+\texttt{bcf1866ea9a4ae82b32bd95b82ffd812b9ee80d2}。2026-09-23
+核对，仅引用题目范围，不据此申奖。见\href{https://github.com/TheJustinSunPrize/awards/blob/bcf1866ea9a4ae82b32bd95b82ffd812b9ee80d2/problems/catalog-0001-0100.md\#JSP-000008}{官方题库条目}。
+
+{[}2{]} 本项目 \texttt{launch/PRIZE\_INSPIRED\_EXPLORATIONS\_DRAFT.md}
+的 M01
+卡：有限见证、明确范围及逐行复查的演示任务。本地目录中的生成器、检查器和实际
+CSV 构成本次实验材料。
+
+\end{document}

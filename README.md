@@ -1,37 +1,117 @@
-# Eksmu protocol & independent verifier
+# Eksmu · Open Inquiry Community (开放探索共同体)
 
-[Eksmu](https://eksmu.com) is an open research platform: anyone can publish, without credentials, endorsements, wallets or fees. This repository is the part you should not have to take on trust:
+> **Before the truth, we are all apprentices. No degree, institution or identity required: anyone can publish their inquiry here and let evidence and discussion speak.**
+>
+> **在真理面前，我们都是学徒。这里不问学历、机构或身份，任何人都可以发表自己的探索，让证据和讨论说话。**
 
-- **[SPEC.md](SPEC.md)** — the public record formats: records, the hash chain, Bitcoin time anchors (OpenTimestamps), publication snapshots, author notices, attachment commitments (`eksmu.public-mirror.v2`) and digest-only chain witnesses (`eksmu.chain-witness.v1`).
-- **[eksmu_verify.py](eksmu_verify.py)** — a single-file verifier (Python 3.9+, standard library only) that downloads a site's public mirror and available publication snapshots, checks them offline, and verifies any downloaded PDF or LaTeX source archive against the chain.
-- **[proof_bundle.py](proof_bundle.py)** & **[witness/](witness/)** — a digest-only chain witness (`witness/chain-witness.json`) and OpenTimestamps anchor files (`witness/anchors/*.bin`, `*.bin.ots`) so anyone can audit the hash chain and Bitcoin proofs even without reaching `eksmu.com`.
+Live platform: **<https://eksmu.com>** · Verifiable openness & offline checks: **<https://eksmu.com/zh/openness.html>**
+
+This repository contains the complete open-source codebase of the **Eksmu** web platform and backend services, together with the public record protocol specification, zero-dependency offline verification tools, and public Bitcoin-anchored chain witnesses.
+
+---
+
+## 1. Independent Offline Verification (Zero Dependencies)
+
+You do not need to trust the operator of `eksmu.com` to verify the integrity and timestamp proofs of published works and attachments. `eksmu_verify.py` and `proof_bundle.py` require only Python 3.9+ standard library:
 
 ```bash
+# 1. Pull the full public mirror (records, hash chain, anchors, snapshots, AI analyses) and verify
 python3 eksmu_verify.py pull https://eksmu.com ./eksmu-mirror
+
+# 2. Re-run the full cryptographic check completely offline at any time
 python3 eksmu_verify.py verify ./eksmu-mirror
-python3 eksmu_verify.py verify-file ./eksmu-mirror ./paper.pdf   # or pass a single record-proof JSON
+
+# 3. Verify any locally downloaded PDF or LaTeX source archive against the hash chain & Bitcoin anchors
+python3 eksmu_verify.py verify-file ./eksmu-mirror ./paper.pdf
+
+# 4. Check that the code eksmu.com reports running matches this checkout (SPEC.md §11)
+python3 eksmu_verify.py verify-source https://eksmu.com .
+
+# 5. Audit the standalone chain witness directly from this repository without reaching eksmu.com
 python3 proof_bundle.py verify witness/chain-witness.json
-# optional, needs a Bitcoin node:  ots verify -f witness/anchors/1.bin witness/anchors/1.bin.ots
+# Optional (requires OpenTimestamps client + Bitcoin node):
+# ots verify -f witness/anchors/1.bin witness/anchors/1.bin.ots
 ```
 
-## What this guarantees, and what it does not
+See **[SPEC.md](SPEC.md)** for the complete specification of `eksmu.record-chain.v1`, `eksmu.public-mirror.v2`, `eksmu.record-proof.v1`, `eksmu.chain-witness.v1`, and `eksmu.source-attestation.v1`.
 
-If the verifier passes and the chain head is covered by a Bitcoin-confirmed anchor, a later rewrite of a covered record can be detected by comparing it with the independently verified anchor or a previously retained mirror that covers the record. A mirror cannot prove that the operator included every record.
+### What this guarantees, and what it does not
 
-It does **not** prove who wrote something (records are not author-signed yet), that anything was first or correct, or that a mirror contains every record (compare heads with an anchor or another mirror). The verifier states these limits in its output.
+- **Tamper & backdating detection**: Once a record or file digest is folded into the SHA-256 record chain and covered by a Bitcoin-confirmed OpenTimestamps anchor, any subsequent modification, deletion, or reordering of covered records is cryptographically detectable.
+- **Compliance tombstones (`redactions`)**: If an attachment's raw bytes must be removed for privacy or copyright compliance, its `material` digest remains in the hash chain so historical chain heads and Bitcoin proofs never break.
+- **Running code ↔ public source**: `GET /api/source` publishes the SHA-256 of every runtime file the server loaded at start-up; `verify-source` compares it with a checkout of this repository. This is the operator's own statement: it catches drift and pins the exact commit, but cannot by itself prove what the process executes.
+- **Explicit limits**: Time anchors prove that a manuscript or attachment byte sequence existed *no later than* the anchored Bitcoin block time. They do **not** prove originality, mathematical/scientific correctness, or real-world author identity.
 
-## Principles
+---
 
-Publishing never depends on an AI score, a formal-proof result, a referee, a degree or a payment. Evaluation, recommendation and moderation are separate from the right to publish, and no single model, majority, credential or founder has final say on what is true. The tools here exist so that these commitments can be checked rather than believed.
+## 2. Run Your Own Eksmu Server Locally
 
-## 中文简介
+Eksmu is built with Python's standard library + SQLite so that any researcher or community member can run a full local instance or replica node with minimal dependencies:
 
-Eksmu 是一个开放科研平台：任何人都能发表，不需要学历、推荐人、钱包或付费。本仓库公开的是不应只靠信任的部分：记录格式规范（SPEC.md）和一个零依赖的单文件核验工具。用它可以下载站点公开镜像及可用的发表快照，离线核验；未固定到快照的附件不包含在内。对比独立核验的已确认锚点或覆盖相关记录的旧镜像，可以发现事后对已覆盖记录的改写、删除或重排。它不证明作者身份（目前尚无作者签名），也不证明首创性或研究正确，这些局限会写在核验输出里。
+```bash
+python3 -m pip install -r requirements-research.txt
+python3 scripts/doctor.py
+python3 -m eksmu serve
+```
 
-## Status
+Then open `http://127.0.0.1:8765` in your browser.
+- Optional math/code rendering uses local `pandoc` (falls back to clean source view if not installed).
+- Optional verification lab worker: `python3 -m eksmu serve --with-verification`.
+- Full instance backup & portable blob restore: `python3 -m eksmu --db <path> backup <dest> --portable-blobs --offline`.
 
-Early public alpha. Site source code is not yet published; it will follow after a privacy review of its history. Issues and independent implementations of the verifier are welcome.
+---
 
-## License
+## 3. Run the Automated Test Suite
 
-Apache License 2.0 — see [LICENSE](LICENSE).
+The repository includes 680+ Python unit & integration tests, 3 Node.js UI test suites, and deployment/sandbox checks. All tests run locally against temporary directories with zero cloud or network dependencies:
+
+```bash
+python3 scripts/check_local.py
+```
+
+Or run individual suites:
+
+```bash
+python3 scripts/check_integrated.py
+node tests_community/test_ui.cjs
+node tests_research/test_ui.cjs
+node tests_bridge/test_ui.cjs
+python3 deployment/google-cloud/test_deployment.py
+python3 deployment/google-cloud/test_public_alpha.py
+```
+
+---
+
+## 4. Repository Structure
+
+- **[eksmu/](eksmu/)** — Main web platform, HTTP server, SQLite store, SHA-256 record chain (`record_chain.py`, `material_chain.py`), OpenTimestamps anchoring (`chain_anchor.py`, `time_anchor.py`), AI public analysis worker (`analysis.py`, `analysis_worker.py`), LaTeX source inspection (`manuscript.py`), portable backups (`backup.py`), and bilingual frontend (`static/`, `locales/`).
+- **[eksmu_bridge/](eksmu_bridge/)**, **[eksmu_receipts/](eksmu_receipts/)**, **[verification_lab/](verification_lab/)** — Verification bridge, signed arithmetic receipts, and isolated verification worker.
+- **[deployment/compile/](deployment/compile/)** — Rootless, network-isolated LaTeX compilation container and recorder-file security checks (`compile_entry.py`, `Dockerfile`).
+- **[eksmu_verify.py](eksmu_verify.py)**, **[proof_bundle.py](proof_bundle.py)**, **[tools/](tools/)** — Zero-dependency offline mirror, single-file, and proof-bundle verifiers.
+- **[SPEC.md](SPEC.md)** & **[witness/](witness/)** — Public cryptographic format specification and Bitcoin-anchored chain witness snapshots.
+- **[CHARTER.md](CHARTER.md)** & **[SECURITY.md](SECURITY.md)** — Participation rights, separation of powers, and security policy.
+- **[docs/guides/](docs/guides/)** & **[docs/rfcs/](docs/rfcs/)** — User guides and engineering RFCs (`0001`–`0032`).
+
+---
+
+## 5. Governance Invariants
+
+Per **[CHARTER.md](CHARTER.md)**:
+1. Publishing never depends on an AI score, a formal-proof result, a referee, an academic degree, institutional affiliation, a crypto wallet, or payment.
+2. Evaluation, funding, recommendation, and moderation powers are strictly separated from the right to publish.
+3. No single AI model, token majority, credentialed expert, or founder holds final authority over scientific truth.
+
+---
+
+## 6. License
+
+This repository uses a dual-license structure to maximize both **independent verification freedom** and **anti-capture platform openness**:
+
+- **Web Platform, Server, Sandboxes, Scripts, Tests & Docs (`eksmu/`, `eksmu_bridge/`, `eksmu_receipts/`, `verification_lab/`, `deployment/`, `scripts/`, `tests*/`, `integration/`, `examples/`, `docs/`, `CHARTER.md`, `SECURITY.md`)**: Licensed under the **GNU Affero General Public License v3.0 or (at your option) any later version ([LICENSE](LICENSE), `AGPL-3.0-or-later`)**. Anyone may inspect, self-host, fork, or run a community node; any public network service running a modified version must also make its source code available.
+- **Protocol Specification, Verifiers & Public Witnesses (`SPEC.md`, `eksmu_verify.py`, `proof_bundle.py`, `tools/`, `witness/`, `tests/test_verify.py`, `tests/fixture-mirror*`)**: Licensed under the **Apache License 2.0 ([LICENSE-APACHE-2.0](LICENSE-APACHE-2.0))**, allowing unrestricted integration into third-party verifiers, archives, and research tooling.
+- Bundled web fonts in `eksmu/static/fonts/` are licensed under the SIL Open Font License 1.1 (`LICENSE-chakra-petch.txt`, `LICENSE-jetbrains-mono.txt`).
+- Copyright 2026 The Eksmu Authors; see [NOTICE](NOTICE).
+
+## 7. Contributing
+
+Issues and pull requests are welcome. Commits must carry a Developer Certificate of Origin sign-off (`git commit -s`), and contributions are licensed under the license of the files they touch (inbound = outbound). See [CONTRIBUTING.md](CONTRIBUTING.md); report vulnerabilities privately per [SECURITY.md](SECURITY.md).

@@ -1,0 +1,13 @@
+{
+  "format": "oic.demo-finite-check.v1",
+  "demo": true,
+  "lower_inclusive": 4,
+  "upper_inclusive": 10000,
+  "checked_even_integers": 4999,
+  "method": "integer trial division for each supplied p and q; exact ordered coverage",
+  "csv_sha256": "be3f353eae71d7ca535c9a276247ad857b0b692f096a2446f208300883de5a7b",
+  "finite_witness_check": "PASS",
+  "general_conjecture_proved": false,
+  "lean_checked": false,
+  "independent_human_review": false
+}

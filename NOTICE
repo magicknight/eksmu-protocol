@@ -1,0 +1,16 @@
+Eksmu
+Copyright 2026 The Eksmu Authors
+
+This repository is dual-licensed by directory; see README.md ("License").
+- GNU Affero General Public License v3.0 or later (LICENSE): the web platform,
+  server, sandboxes, scripts, tests and documentation.
+- Apache License 2.0 (LICENSE-APACHE-2.0): SPEC.md, eksmu_verify.py,
+  proof_bundle.py, tools/, witness/, tests/test_verify.py and tests/fixture-mirror*.
+  Files under this license carry an "SPDX-License-Identifier: Apache-2.0" header.
+
+"The Eksmu Authors" means the project maintainer and every contributor whose
+commit carries a Developer Certificate of Origin sign-off (see CONTRIBUTING.md);
+the commit history is the authoritative list.
+
+Bundled fonts in eksmu/static/fonts/ are licensed under the SIL Open Font
+License 1.1; see the LICENSE-*.txt files in that directory.

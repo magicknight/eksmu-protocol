@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#07080D">
+<title>Eksmu · 开放保障与离线核验</title><!--i18n:head--><link rel="icon" href="/favicon.svg" type="image/svg+xml"><meta name="description" content="了解 Eksmu 的记录链、时间证据与公开镜像，以及离线核验的范围和限制。"><link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/research.css"><script src="/shell.js" defer></script></head>
+<body>
+<div class="app-shell">
+<a class="skip-link" href="#main">跳到主要内容</a>
+<header class="hd topbar sh-top"><div class="hd-in topbar-inner"><a class="brand" href="/" aria-label="Eksmu 首页"><span class="brand-mark"><svg viewBox="0 0 64 64" aria-hidden="true"><rect x="2" y="2" width="60" height="60" rx="8" fill="#0C0F18" stroke="#2DE2E6" stroke-width="2.5"/><text x="9" y="49" font-family="'Chakra Petch',Georgia,'Times New Roman',serif" font-style="italic" font-size="46" font-weight="700" fill="#E6E9F2">x</text><text x="36" y="27" font-family="'Chakra Petch',Georgia,'Times New Roman',serif" font-style="italic" font-size="28" font-weight="700" fill="#2DE2E6">μ</text></svg></span><span class="name brand-name glitch" data-text="Eksmu">Eksmu</span></a>
+<button type="button" class="cmd" id="cmd-trigger" aria-label="搜索作品、命令 (Ctrl+K / /)" aria-haspopup="dialog"><span class="cmd-gt mono" aria-hidden="true">&gt;</span><svg class="cmd-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="m15 15 5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span class="cmd-txt">搜索作品、命令…</span><span class="cmd-keys" aria-hidden="true"><span class="kbd">Ctrl</span><span class="kbd">K</span></span></button>
+<div class="tools"><button class="tool fx" id="fx-toggle" type="button" aria-pressed="true" aria-label="视觉效果" title="切换视觉效果 (FX / LITE)"><span class="dot hot" aria-hidden="true"></span><span class="fx-txt">FX</span></button><!--i18n:switch--><a class="tool account-link" href="/account" aria-label="账户"><svg class="si-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.8" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M4.5 20c.9-3.6 3.8-5.6 7.5-5.6s6.6 2 7.5 5.6" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><span class="si-txt">账户</span></a></div></div></header>
+<aside class="rail sh-rail" aria-label="控制台导航">
+<nav class="sec topnav" aria-label="主要导航">
+<a href="/" class="it" title="发现" aria-label="发现"><span class="no mono" aria-hidden="true">01</span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.5 12 4l8 7.5V20h-5.5v-5h-5v5H4z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"/></svg><span class="lb">发现</span></a>
+<a href="/publish" class="it" title="发表" aria-label="发表"><span class="no mono" aria-hidden="true">02</span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16m-8-8h16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg><span class="lb">发表</span></a>
+<a href="/activity" class="it" title="动态" aria-label="动态"><span class="no mono" aria-hidden="true">03</span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h3l3-7 4 14 3-7h3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"/></svg><span class="lb">动态</span></a>
+</nav>
+<div class="rail-group"><p class="rail-group-title">关于</p><nav class="rail-subnav" aria-label="关于导航">
+<a href="/participation.html" class="it sub-it" title="参与说明" aria-label="参与说明"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M12 8v4m0 4h.01" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg><span class="lb">参与说明</span></a>
+<a href="/founding.html" class="it sub-it" title="创立期活动" aria-label="创立期活动"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg><span class="lb">创立期活动</span></a>
+<a href="/openness.html" class="it sub-it" title="开放核验" aria-label="开放核验"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="11" width="18" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M7 11V7a5 5 0 0 1 10 0v4" fill="none" stroke="currentColor" stroke-width="1.7"/></svg><span class="lb">开放核验</span></a>
+</nav></div>
+<div class="rail-foot"><button type="button" class="keys" id="rail-keys-btn" title="快捷键说明" aria-label="快捷键说明"><span class="kbd">?</span><span class="keys-t">快捷键</span></button></div>
+</aside>
+<main id="main" class="sh-main page-main">
+<section class="page-hero"><div class="page-hero-inner"><span class="eyebrow mono">EKSMU · VERIFIABLE OPENNESS</span><h1>不需要相信运营方，<br>也能独立核验每一份记录。</h1><p class="lede">Eksmu 完整开源网站与服务端源码，并提供公开记录链、全站镜像和零依赖离线核验工具，让任何人都能独立核验作品、PDF／源码附件与比特币时间证明。</p><nav class="hero-nav"><a href="/api/chain">查看公开记录链 JSON</a><a href="/api/mirror">下载全站公开镜像 JSON</a><a href="https://github.com/magicknight/eksmu-protocol" rel="noreferrer">开源源码与核验仓库</a></nav></div></section>
+
+<section class="panel hp" id="open-tech">
+<header class="hp-head section-head"><div class="hp-titles"><span class="hp-code mono">01 · TECH</span><h2 class="hp-title">开放是怎么被密码学与工具保护的</h2></div><span class="badge">底层机制</span></header>
+<div class="hp-body">
+<h3>1. 追加式 SHA-256 记录链与附件摘要入链</h3>
+<p>账户、作品、版本、评论、证据以及已对账附件的内容摘要（SHA-256 与字节大小）按顺序进入 SHA-256 摘要链。作者声明与 AI 分析报告包含在公开镜像中并带自校验摘要，目前不在记录链内。若个别附件因隐私或合规原因移除原始字节，其链上摘要与移除声明（redactions）仍保留，历史链头与比特币证明不会断裂。</p>
+<h3>2. 比特币 OpenTimestamps 外部锚定</h3>
+<p>全站链头摘要会定期通过 OpenTimestamps 锚定到比特币区块链。一旦区块确认，任何人都可以用公开区块头独立验证该记录在锚定区块时间之前已经存在。</p>
+<h3>3. 网站源码开源与全站开放镜像</h3>
+<p>Eksmu 网站与服务端完整源码（GNU AGPL-3.0）及协议规范、离线核验工具、公开链见证（Apache-2.0）已在 GitHub 开放，任何人可审查代码或自建实例。公开镜像（v2）导出公开记录、记录链、锚点、移除声明、AI 分析及发表快照索引；快照包另行下载，普通附件原始字节可从作品页下载并用核验工具比对链上摘要。</p>
+</div></section>
+
+<section class="panel hp" id="open-verify">
+<header class="hp-head section-head"><div class="hp-titles"><span class="hp-code mono">02 · CLI</span><h2 class="hp-title">一分钟离线核验</h2></div><span class="badge">零第三方依赖</span></header>
+<div class="hp-body">
+<p>公开开源仓库提供零外部依赖的 Python 3 标准库核验脚本，不需要安装第三方包，也不需要登录账户：</p>
+<pre class="citation">git clone https://github.com/magicknight/eksmu-protocol.git
+cd eksmu-protocol
+
+# 1. 下载公开镜像及发表快照并核验
+python3 eksmu_verify.py pull https://eksmu.com ./mirror
+
+# 2. 断网状态下随时对本地镜像重新运行完整密码学核验
+python3 eksmu_verify.py verify ./mirror
+
+# 3. 对本地下载的任意 PDF 或 LaTeX 源码包离线核验 SHA-256 与比特币锚点
+python3 eksmu_verify.py verify-file ./mirror ./paper.pdf
+
+# 4. 核对 eksmu.com 报告正在运行的代码是否与这份公开源码逐文件一致
+python3 eksmu_verify.py verify-source https://eksmu.com .
+
+# 5. 不访问 eksmu.com，直接核验仓库内置的独立链见证与锚点副本
+python3 proof_bundle.py verify witness/chain-witness.json</pre>
+<p class="muted">如果在作品页下载了单篇作品的导出包、单条链证明 JSON 或 OpenTimestamps 证明文件（.ots），也可以把文件直接传给核验脚本或官方 OpenTimestamps 客户端做独立验证。</p>
+</div></section>
+
+<section class="panel hp" id="open-endpoints">
+<header class="hp-head section-head"><div class="hp-titles"><span class="hp-code mono">03 · API</span><h2 class="hp-title">任何人可直接读取的开放端点</h2></div><span class="badge">公共接口</span></header>
+<div class="hp-body">
+<ul>
+<li><strong>全站记录链：</strong>返回按序号排列的全部公开链条目、当前链头摘要，以及所有外部时间戳锚定记录。<a href="/api/chain">/api/chain</a></li>
+<li><strong>全站公开镜像：</strong>导出公开记录、记录链、锚点、合规移除声明、AI 分析与快照索引；快照包须另行下载。<a href="/api/mirror">/api/mirror</a></li>
+<li><strong>运行源码对照：</strong>返回服务启动时实际加载的每个运行文件的 SHA-256 与总摘要，可用 <code>verify-source</code> 或 <code>sha256sum</code>与公开仓库任一提交对照。<a href="/api/source">/api/source</a></li>
+<li><strong>单条链证明与 .ots 文件：</strong>每篇作品页的“时间证据”与“本版材料”小节都提供版本及每个已入链附件对应的链证明 JSON 与原始 OpenTimestamps 二进制证明下载。</li>
+</ul>
+</div></section>
+
+<section class="panel hp" id="open-boundaries">
+<header class="hp-head section-head"><div class="hp-titles"><span class="hp-code mono">04 · BOUNDARIES</span><h2 class="hp-title">诚实边界：这些技术能证明什么，不能证明什么</h2></div><span class="badge">客观限制</span></header>
+<div class="hp-body">
+<ul>
+<li><strong>能证明存在时间与完整性：</strong>经独立核验的锚点为已入链的记录与附件摘要提供时间上限证据；对照保存的链头或单条证明即可发现对正文或附件字节的任何改动。</li>
+<li><strong>不能证明学术正确性或原创性：</strong>密码学时间存证只证明文本何时被提交与公开，不自动证明推导无误，不能代替严谨的同行复现，也不能排除他人在别处更早独立写出类似想法。时间存证不是专利，也不能排他地“保护优先权”。</li>
+<li><strong>源码对照是运营方自述：</strong>/api/source 能发现线上代码与公开源码不一致，并指出对应的公开提交；但它由服务器自己报告，不能单独证明进程实际执行的字节，也不覆盖操作系统、Python 解释器、依赖包与反向代理。</li>
+<li><strong>保护作者，也保护质疑者：</strong>公开 AI 分析及回应可在镜像中读取并校验自身摘要，目前不在记录链锚点内。</li>
+</ul>
+<div class="work-actions"><a class="btn primary" href="/">返回发现作品</a><a class="btn secondary" href="/participation.html">查看参与说明</a></div>
+</div></section>
+
+<footer class="ft site-footer"><div class="ft-in footer-inner wrap"><div class="ft-brand"><span class="ft-name glitch" data-text="Eksmu">Eksmu</span><p class="ft-tag footer-motto">自由参与 · 具体证据 · 多元判断 · 可迁移记录</p></div><nav class="ft-links footer-links" aria-label="页脚导航"><a href="/participation.html">参与说明</a><a href="/founding.html">创立期活动</a><a href="/openness.html">开放核验</a><a href="https://github.com/magicknight/eksmu-protocol" rel="noreferrer">开源源码</a></nav><p class="ft-credit">从一个人的好奇，到一群人的共同探索。</p></div></footer>
+</main>
+<nav class="tabbar" aria-label="移动端底部导航">
+<a href="/" class="tab" aria-label="发现"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.5 12 4l8 7.5V20h-5.5v-5h-5v5H4z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"/></svg><span>发现</span></a>
+<a href="/publish" class="tab" aria-label="发表"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16m-8-8h16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg><span>发表</span></a>
+<a href="/activity" class="tab" aria-label="动态"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h3l3-7 4 14 3-7h3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"/></svg><span>动态</span></a>
+<a href="/account" class="tab" aria-label="账户"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.8" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M4.5 20c.9-3.6 3.8-5.6 7.5-5.6s6.6 2 7.5 5.6" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><span>账户</span></a>
+</nav>
+</div>
+</body></html>

@@ -1,0 +1,12 @@
+# Optional: daily OpenTimestamps anchoring of the record chain head.
+# The publishing application never imports these; only `python -m eksmu anchor`
+# needs them. Versions pinned 2026-10-08 (all released at least two weeks earlier).
+opentimestamps-client==0.7.2
+opentimestamps==0.4.5
+python-bitcoinlib==0.12.2
+pycryptodomex==3.23.0
+GitPython==3.1.62
+gitdb==4.0.12
+smmap==5.0.3
+appdirs==1.4.4
+PySocks==1.7.1

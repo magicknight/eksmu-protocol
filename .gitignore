@@ -1,2 +1,35 @@
+# Private credentials and local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials*.json
+secrets/
+
+# Local caches and generated outputs
+.DS_Store
 __pycache__/
 *.pyc
+.pytest_cache/
+.venv/
+node_modules/
+dist/
+build/
+coverage/
+.lake/
+
+# Local private research uploads; use explicit managed storage later
+private_uploads/
+local_backups/
+
+# Local application state and identity backups
+/data/
+*.sqlite
+*.sqlite-*
+*.db
+*.db-*
+eksmu-identity*.json
+eksmu-recovery*.json
+eksmu-bundle*.json
+private-records*.json
