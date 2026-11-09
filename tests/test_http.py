@@ -53,6 +53,20 @@ class HTTPTests(unittest.TestCase):
                 response.extend(chunk)
             self.assertTrue(response.startswith(b"HTTP/1.0 200"))
 
+    def test_theme_script_served_and_loaded_before_paint(self):
+        code, headers, body = self.request("/theme.js")
+        self.assertEqual(code, 200)
+        self.assertTrue(headers["Content-Type"].startswith("text/javascript"))
+        self.assertIn(b"eksmu_theme", body)
+        for path in ("/", "/participation.html", "/founding.html", "/openness.html", "/en/"):
+            with self.subTest(path=path):
+                code, _, page = self.request(path)
+                self.assertEqual(code, 200)
+                head = page.split(b"</head>", 1)[0]
+                # Synchronous (no defer) so the stored palette applies before first paint.
+                self.assertIn(b'<script src="/theme.js"></script>', head)
+                self.assertIn(b'id="theme-toggle"', page)
+
     def test_new_participant_http_journey(self):
         code, _, body = self.request("/api/actors", {"alias":"新人"})
         self.assertEqual(code, 201); identity = json.loads(body)

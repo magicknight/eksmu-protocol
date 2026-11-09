@@ -20,7 +20,7 @@
 .work-readouts {
   display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem 1.4rem;
   padding: 0.65rem 0.95rem; margin: 0.6rem 0 0.8rem;
-  background: rgba(12, 15, 24, 0.75); border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 75%, transparent); border: 1px solid var(--border);
   border-radius: var(--radius); box-sizing: border-box; max-width: 100%;
 }
 @media (max-width: 720px) {
@@ -189,13 +189,13 @@
   border: 1px solid var(--border-strong); padding: 0.55rem 0.85rem; text-align: start;
 }
 .research-prose th { background: var(--bg-elev); color: var(--accent); font-weight: 700; }
-.research-prose tr:nth-child(even) td { background: rgba(16, 19, 29, 0.4); }
+.research-prose tr:nth-child(even) td { background: color-mix(in srgb, var(--bg-elev) 40%, transparent); }
 
 .research-prose img { max-width: 100%; height: auto; border-radius: var(--radius); border: 1px solid var(--border); }
 
 /* Sidebar panels */
 .side-panel {
-  background: rgba(12, 15, 24, 0.88); padding: 1rem 1.15rem; margin-bottom: 0;
+  background: color-mix(in srgb, var(--surface) 88%, transparent); padding: 1rem 1.15rem; margin-bottom: 0;
   min-width: 0; overflow-wrap: anywhere;
 }
 .side-panel .hp-head {
@@ -276,7 +276,7 @@
 }
 .finding-item.finding-sev-minor .sev-badge {
   color: var(--warn); border-color: color-mix(in srgb, var(--warn) 50%, transparent);
-  background: rgba(249, 248, 113, 0.1);
+  background: color-mix(in srgb, var(--warn) 10%, transparent);
 }
 .finding-item.finding-sev-note {
   border-inline-start: 3px solid var(--muted);
@@ -291,11 +291,11 @@
   display: inline-flex; margin-top: 0.35rem; font-size: 0.76rem;
 }
 .quote-status.ok {
-  color: var(--ok); background: rgba(92, 230, 160, 0.12);
+  color: var(--ok); background: color-mix(in srgb, var(--ok) 12%, transparent);
   border-color: color-mix(in srgb, var(--ok) 40%, transparent);
 }
 .quote-status.danger {
-  color: var(--danger); background: rgba(255, 107, 107, 0.12);
+  color: var(--danger); background: color-mix(in srgb, var(--danger) 12%, transparent);
   border-color: color-mix(in srgb, var(--danger) 40%, transparent);
 }
 .finding-statement {
@@ -361,7 +361,7 @@
 /* Workspace navigation & helpers */
 .workspace-nav {
   position: sticky; top: calc(var(--header-h) + 2px); z-index: 25;
-  background: rgba(7, 8, 13, 0.92); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
   padding: 0.5rem 0; border-block-end: 1px solid var(--border); margin: 0.8rem 0 1rem;
   display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap;
 }
@@ -401,8 +401,8 @@
   font-family: var(--font-mono); font-size: 0.85rem; white-space: pre-wrap; overflow-wrap: anywhere;
   margin: 1rem 0; background: var(--bg-elev); padding: 1rem; border: 1px solid var(--border);
 }
-.diff-add { background: rgba(92, 230, 160, 0.15); color: var(--ok); }
-.diff-remove { background: rgba(255, 107, 107, 0.15); color: var(--danger); }
+.diff-add { background: color-mix(in srgb, var(--ok) 15%, transparent); color: var(--ok); }
+.diff-remove { background: color-mix(in srgb, var(--danger) 15%, transparent); color: var(--danger); }
 .diff-context { color: var(--muted); }
 
 /* =====================================================================
@@ -486,7 +486,7 @@
 .work-toc {
   position: sticky; top: var(--header-h); z-index: 20;
   display: flex; gap: 0.25rem; align-items: center; overflow-x: auto; scrollbar-width: none;
-  margin: -0.4rem 0 1rem; padding: 0.35rem 0; background: rgba(7, 8, 13, 0.92);
+  margin: -0.4rem 0 1rem; padding: 0.35rem 0; background: color-mix(in srgb, var(--bg) 92%, transparent);
   backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-block-end: 1px solid var(--border);
 }
 .work-toc::-webkit-scrollbar { display: none; }
@@ -524,9 +524,9 @@ html.fx-lite .work-toc { backdrop-filter: none; -webkit-backdrop-filter: none; b
 .claim-text { margin: 0.35rem 0; }
 .claim-chip, .sev-badge { font-size: 0.76rem; font-weight: 600; }
 .claim-item.claim-supported { border-inline-start-color: var(--ok); }
-.claim-supported .claim-chip { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 45%, transparent); background: rgba(92, 230, 160, 0.1); }
+.claim-supported .claim-chip { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 45%, transparent); background: color-mix(in srgb, var(--ok) 10%, transparent); }
 .claim-item.claim-partially_supported { border-inline-start-color: var(--warn); }
-.claim-partially_supported .claim-chip { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 45%, transparent); background: rgba(249, 248, 113, 0.1); }
+.claim-partially_supported .claim-chip { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 45%, transparent); background: color-mix(in srgb, var(--warn) 10%, transparent); }
 .claim-item.claim-not_established { border-inline-start-color: var(--hot); }
 .claim-not_established .claim-chip { color: var(--hot); border-color: color-mix(in srgb, var(--hot) 45%, transparent); background: var(--hot-soft); }
 .claim-not_assessed .claim-chip { color: var(--muted); }

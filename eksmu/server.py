@@ -527,7 +527,7 @@ def _make_server(database: str | Path, port: int, *, verification: bool,
                 if not writing and path.startswith('/i18n/') and path[6:-3] in i18n.LANGS and path.endswith('.js'):
                     self.send(200, i18n.script(path[6:-3]), 'text/javascript; charset=utf-8')
                     return
-                if not writing and path in {'/publications.js', '/publication-view.js', '/analysis.js', '/work-page.js'}:
+                if not writing and path in {'/publications.js', '/publication-view.js', '/analysis.js', '/work-page.js', '/theme.js'}:
                     self.send(200, (STATIC / path[1:]).read_bytes(), 'text/javascript; charset=utf-8')
                     return
                 if not writing and path == '/papers.js':

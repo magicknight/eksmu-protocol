@@ -1554,5 +1554,6 @@
  "目前不是联邦：": "Not a federation yet:",
  "账户与登录凭据、附件原始字节、AI 分析、发表快照不随导入恢复；比特币锚点证明保留在镜像目录里，可单独核验。": "accounts and login credentials, original attachment bytes, AI analyses and publication snapshots are not restored by the import; Bitcoin anchor proofs stay in the mirror directory and can be verified separately.",
  "重建恢复的是公开记录与记录链：": "Rebuilding restores public records and the record chain:",
- "协议、源码与重建 →": "Protocol, source & rebuild →"
+ "协议、源码与重建 →": "Protocol, source & rebuild →",
+ "切换主题": "Switch theme"
 }
