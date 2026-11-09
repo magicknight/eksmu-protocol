@@ -105,6 +105,7 @@ Verification: report digest; revision digest binding; finding ids in order; resp
 - Snapshots and notices folded into the record chain.
 - Author signatures (server-held by default, exportable), with old records shown as "claimed at migration", never back-signed.
 - Incremental mirror sync by chain sequence.
+- Cross-instance witnessing of chain heads and opt-in mutual recognition between instances. Not part of v1; see [ROADMAP.md](ROADMAP.md).
 
 ## 9. Mirror v2: attachment commitments and compliance redactions
 
@@ -168,4 +169,4 @@ An instance serves `GET /.well-known/eksmu.json`:
 
 Another implementation of this specification may serve the same shape. `python3 eksmu_verify.py conform <origin>` is a read-only black-box check that (1) the descriptor has this format and lists `chain`, `mirror` and `source`; (2) `/api/mirror` can be pulled and passes the checks in §§2-7 and 9; (3) `/api/source` has the format of §11 and a usable `tree_sha256`. It exits 0 only if all three pass and prints a `eksmu.conformance-report.v1` with a `not_verified` list.
 
-What conformance does not mean: it does not check that the attested source equals any public checkout (use `verify-source`), that anchors are confirmed on Bitcoin, that the mirror is complete, or anything about governance, moderation or content quality. The descriptor is the operator's own unsigned statement. Instances do not sync with or recognise each other; cross-instance recognition is not part of v1.
+What conformance does not mean: it does not check that the attested source equals any public checkout (use `verify-source`), that anchors are confirmed on Bitcoin, that the mirror is complete, or anything about governance, moderation or content quality. The descriptor is the operator's own unsigned statement. Instances do not sync with or recognise each other; cross-instance recognition is not part of v1 (see [ROADMAP.md](ROADMAP.md)).

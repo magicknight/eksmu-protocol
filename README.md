@@ -10,7 +10,7 @@ Live platform: **<https://eksmu.com>** · Verifiable openness & offline checks: 
 
 | Today | Roadmap (not built) |
 |---|---|
-| Open protocol and AGPL source; zero-dependency offline verifier; Bitcoin-anchored record chain; public mirror; mirror → new instance rebuild (tested); `conform` and `/.well-known/eksmu.json` | Federation: instances recognising and syncing each other; incremental mirror sync; author signatures |
+| Open protocol and AGPL source; zero-dependency offline verifier; Bitcoin-anchored record chain; public mirror; mirror → new instance rebuild (tested); `conform` and `/.well-known/eksmu.json` | Incremental mirror sync; author signatures; cross-instance witnessing; federation (opt-in mutual recognition); third-party implementations. See **[ROADMAP.md](ROADMAP.md)** |
 
 This repository contains the complete open-source codebase of the **Eksmu** web platform and backend services, together with the public record protocol specification, zero-dependency offline verification tools, and public Bitcoin-anchored chain witnesses.
 

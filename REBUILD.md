@@ -25,7 +25,7 @@ On 2026-11-09 this was run against the live site: 10 records were imported into 
 
 ## What this is not
 
-- **Not a federation.** Instances do not sync, share a chain or recognise each other. A rebuilt instance starts a new operator history on top of an imported past. Federation is a roadmap idea, not a feature.
+- **Not a federation.** Instances do not sync, share a chain or recognise each other. A rebuilt instance starts a new operator history on top of an imported past. Federation is a roadmap item, not a feature; see [ROADMAP.md](ROADMAP.md).
 - **Not a claim about trust in the new operator.** Records you import can be verified; what the new operator does afterwards (moderation, new records, availability) is theirs to answer for, as with any site.
 - **Conformance is format-level.** See SPEC.md §12.
 
