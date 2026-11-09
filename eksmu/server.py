@@ -36,7 +36,7 @@ CARD_SVG_PATH = re.compile(rf'/(?:(zh|en)/)?w/({_UUID_RE})/card\.svg')
 WORK_PDF_PATH = re.compile(rf'/(?:(zh|en)/)?w/([^/]+)/pdf/([^/]+)')
 WORK_HTML_PATH = re.compile(rf'/(?:(zh|en)/)?w/([^/]+)/html/([^/]+)')
 BADGE_SVG_PATH = re.compile(rf'/api/badge/({_UUID_RE})\.svg')
-PUBLIC_DISCOVERY_PATHS = {'/robots.txt', '/sitemap.xml', '/feed.xml'}
+PUBLIC_DISCOVERY_PATHS = {'/robots.txt', '/sitemap.xml', '/feed.xml', '/.well-known/eksmu.json'}
 
 
 def load_json(raw: bytes) -> dict:
@@ -595,6 +595,10 @@ def _make_server(database: str | Path, port: int, *, verification: bool,
                     self.send(200, {"version": "0.2.0", "mode": "public-alpha" if proxy else "local-private-prototype",
                         "automatic_verification": False, 'public_registration': bool(proxy),
                         'email_recovery_available': mail_sender is not None})
+                    return
+                if not writing and path == '/.well-known/eksmu.json':
+                    from .source_attestation import descriptor
+                    self.send(200, descriptor())
                     return
                 if not writing and path == '/api/source':
                     if urlsplit(self.path).query:

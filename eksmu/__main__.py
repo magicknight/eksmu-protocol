@@ -94,6 +94,8 @@ def main():
     pulling = commands.add_parser('mirror-pull', help='Copy the public mirror of a site into a NEW directory and verify it')
     pulling.add_argument('origin', help='Site root, e.g. https://eksmu.com')
     pulling.add_argument('directory')
+    importing = commands.add_parser('mirror-import', help='Verify a pulled mirror, then rebuild its public records into a NEW empty database')
+    importing.add_argument('directory')
     commands.add_parser('verify-mirror', help='Offline consistency check of a mirror directory').add_argument('directory')
     analysing = commands.add_parser('run-analysis-queue', help='Run queued author-requested AI analyses and AI topic cataloging (needs requirements-analysis.txt)')
     analysing.add_argument('--config', help='Operator config with ANTHROPIC_API / OPENAI_API / DEEPSEEK_API keys')
@@ -384,6 +386,14 @@ def main():
                     with open(args.file, "x", encoding="utf-8") as output:
                         output.write(canonical(store.export()) + "\n")
                     print("Exported records only. Keep identity keys separately and privately.")
+                elif args.command == 'mirror-import':
+                    from .mirror import verify_mirror
+                    report = verify_mirror(args.directory)
+                    raw = (Path(args.directory) / 'manifest.json').read_bytes()
+                    store.import_bundle(load_json(raw)['records'])
+                    print(canonical({'imported_records': report['records'], 'chain_head': report['chain']['head'],
+                                     'not_restored': ['accounts and credentials', 'attachment bytes', 'AI analyses',
+                                                      'publication snapshots', 'Bitcoin anchor proofs (still in the mirror directory)']}))
                 else:
                     with open(args.file, "rb") as source:
                         raw = source.read(MAX_BUNDLE_BYTES + 1)

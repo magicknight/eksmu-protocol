@@ -153,3 +153,19 @@ sha256sum $(cat paths.txt) | LC_ALL=C sort -k2 | sha256sum
 `python3 eksmu_verify.py verify-source https://eksmu.com <checkout>` fetches the document, checks `tree_sha256` against its own `files` map, and requires every listed file in the checkout to have the same SHA-256. `mismatched`/`missing` report drift between the files on disk and the manifest shipped with them.
 
 Limits: the attestation is the operator's own statement. It detects accidental drift and lets anyone point at the exact public commit, but a dishonest operator could serve one tree and report another; it says nothing about the operating system, interpreter, dependencies or reverse proxy. If the installation has no manifest, the response is `{"available": false, "reason": ...}`.
+
+## 12. Instance descriptor and conformance (`eksmu.instance.v1`)
+
+An instance serves `GET /.well-known/eksmu.json`:
+
+```json
+{"format": "eksmu.instance.v1",
+ "implementation": {"name": "eksmu", "repository": "...", "license": "AGPL-3.0-or-later", "spec": "..."},
+ "protocol": {"record_chain": "eksmu.record-chain.v1", "mirror": "eksmu.public-mirror.v2", "source_attestation": "eksmu.source-attestation.v1"},
+ "endpoints": {"chain": "/api/chain", "mirror": "/api/mirror", "source": "/api/source", "health": "/api/health"},
+ "not_claimed": ["..."]}
+```
+
+Another implementation of this specification may serve the same shape. `python3 eksmu_verify.py conform <origin>` is a read-only black-box check that (1) the descriptor has this format and lists `chain`, `mirror` and `source`; (2) `/api/mirror` can be pulled and passes the checks in §§2-7 and 9; (3) `/api/source` has the format of §11 and a usable `tree_sha256`. It exits 0 only if all three pass and prints a `eksmu.conformance-report.v1` with a `not_verified` list.
+
+What conformance does not mean: it does not check that the attested source equals any public checkout (use `verify-source`), that anchors are confirmed on Bitcoin, that the mirror is complete, or anything about governance, moderation or content quality. The descriptor is the operator's own unsigned statement. Instances do not sync with or recognise each other; cross-instance recognition is not part of v1.

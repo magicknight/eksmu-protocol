@@ -6,6 +6,7 @@
     python3 eksmu_verify.py verify ./mirror                   # offline re-check
     python3 eksmu_verify.py verify-file ./mirror ./paper.pdf  # check a local file against chain/proof
     python3 eksmu_verify.py verify-source https://eksmu.com .  # compare the site's /api/source with a checkout
+    python3 eksmu_verify.py conform https://example.org       # is this site a conforming Eksmu protocol instance?
 
 This file is deliberately self-contained so that anyone can audit and run it
 without the Eksmu server code. It implements the integrity rules in SPEC.md.
@@ -486,6 +487,53 @@ def verify_source(source, checkout):
     }
 
 
+def conform(origin):
+    """Black-box protocol conformance of a running instance (SPEC.md). Read-only; leaves nothing behind."""
+    import tempfile
+    parts = urllib.parse.urlsplit(origin)
+    loopback = parts.hostname in {'127.0.0.1', 'localhost', '::1'}
+    require(parts.scheme == 'https' or (parts.scheme == 'http' and loopback), 'origin must use https')
+    require(parts.path in {'', '/'} and not parts.query and parts.hostname, 'origin must be a site root')
+    base = f'{parts.scheme}://{parts.netloc}'
+    checks = []
+
+    def run(name, fn):
+        try:
+            checks.append({'check': name, 'ok': True, 'detail': fn()})
+        except (Invalid, AttributeError, KeyError, TypeError, ValueError, OSError) as exc:
+            checks.append({'check': name, 'ok': False, 'detail': f'{type(exc).__name__}: {exc}'})
+
+    def descriptor():
+        d = json.loads(fetch(base + '/.well-known/eksmu.json', 64 * 1024))
+        require(d.get('format') == 'eksmu.instance.v1', 'descriptor format is not eksmu.instance.v1')
+        require(set(d.get('endpoints', {})) >= {'chain', 'mirror', 'source'}, 'descriptor lacks chain/mirror/source endpoints')
+        return {'implementation': d.get('implementation', {}).get('name'), 'record_chain': d.get('protocol', {}).get('record_chain')}
+
+    def mirror():
+        with tempfile.TemporaryDirectory() as tmp:
+            result = pull(base, Path(tmp) / 'mirror')
+        require(result.get('internally_consistent') is True, 'mirror is not internally consistent')
+        return {'records': result.get('records'), 'chain_length': result.get('chain', {}).get('length'),
+                'chain_head': result.get('chain', {}).get('head')}
+
+    def source():
+        s = json.loads(fetch(base + '/api/source', 8 * 1024 * 1024))
+        require(s.get('format') == 'eksmu.source-attestation.v1', 'source attestation format is not eksmu.source-attestation.v1')
+        require(s.get('available') is True and is_hex64(s.get('tree_sha256')), 'no usable source attestation')
+        return {'tree_sha256': s['tree_sha256'], 'files': s.get('files_total')}
+
+    run('descriptor /.well-known/eksmu.json', descriptor)
+    run('mirror /api/mirror pulls and verifies (SPEC records, chain, anchors)', mirror)
+    run('source attestation /api/source', source)
+    return {'format': 'eksmu.conformance-report.v1', 'origin': base,
+            'conformant': all(c['ok'] for c in checks), 'checks': checks,
+            'not_verified': [
+                'that the attested source matches any public checkout (run verify-source)',
+                'that the Bitcoin anchors confirm (run ots verify against your own node)',
+                'completeness: a mirror proves only what it contains',
+                'governance, moderation or quality of content; conformance says nothing about them']}
+
+
 def main(argv):
     if len(argv) == 3 and argv[1] == 'verify':
         result = verify(argv[2])
@@ -495,6 +543,10 @@ def main(argv):
         result = verify_file(argv[2], argv[3])
     elif len(argv) == 4 and argv[1] == 'verify-source':
         result = verify_source(argv[2], argv[3])
+    elif len(argv) == 3 and argv[1] == 'conform':
+        result = conform(argv[2])
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0 if result['conformant'] else 2
     else:
         print(__doc__.strip().split('\n\n')[1], file=sys.stderr)
         return 64

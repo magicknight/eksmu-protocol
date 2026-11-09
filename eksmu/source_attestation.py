@@ -77,3 +77,27 @@ def attestation() -> dict:
         if 'value' not in _cache:
             _cache['value'] = compute()
         return _cache['value']  # type: ignore[return-value]
+
+
+DESCRIPTOR_FORMAT = 'eksmu.instance.v1'
+
+
+def descriptor() -> dict:
+    """Machine-readable self-description served at ``/.well-known/eksmu.json``.
+
+    Any operator running this code, or any other implementation of SPEC.md, can serve
+    the same shape so that ``eksmu_verify.py conform`` can check it. It is the
+    instance's own statement and is not signed.
+    """
+    return {
+        'format': DESCRIPTOR_FORMAT,
+        'implementation': {'name': 'eksmu', 'repository': REPOSITORY, 'license': LICENSE,
+                           'spec': REPOSITORY + '/blob/main/SPEC.md'},
+        'protocol': {'record_chain': 'eksmu.record-chain.v1', 'mirror': 'eksmu.public-mirror.v2',
+                     'source_attestation': FORMAT},
+        'endpoints': {'chain': '/api/chain', 'mirror': '/api/mirror', 'source': '/api/source', 'health': '/api/health'},
+        'not_claimed': [
+            'federation: instances do not yet sync or recognise each other; each instance has its own chain',
+            'self-reported and unsigned: check it with eksmu_verify.py conform and verify-source',
+        ],
+    }

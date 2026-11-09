@@ -6,6 +6,12 @@
 
 Live platform: **<https://eksmu.com>** · Verifiable openness & offline checks: **<https://eksmu.com/zh/openness.html>**
 
+**Eksmu is a protocol first and a website second.** [`SPEC.md`](SPEC.md) defines the open record formats; `eksmu.com` is the *reference instance*. Anyone can verify its records without trusting the operator, mirror them, and [rebuild an instance](REBUILD.md) that follows the same protocol (`eksmu_verify.py conform` checks it).
+
+| Today | Roadmap (not built) |
+|---|---|
+| Open protocol and AGPL source; zero-dependency offline verifier; Bitcoin-anchored record chain; public mirror; mirror → new instance rebuild (tested); `conform` and `/.well-known/eksmu.json` | Federation: instances recognising and syncing each other; incremental mirror sync; author signatures |
+
 This repository contains the complete open-source codebase of the **Eksmu** web platform and backend services, together with the public record protocol specification, zero-dependency offline verification tools, and public Bitcoin-anchored chain witnesses.
 
 ---

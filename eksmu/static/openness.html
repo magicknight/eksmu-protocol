@@ -69,8 +69,38 @@ python3 proof_bundle.py verify witness/chain-witness.json</pre>
 </ul>
 </div></section>
 
+<section class="panel hp" id="open-rebuild">
+<header class="hp-head section-head"><div class="hp-titles"><span class="hp-code mono">04 · REBUILD</span><h2 class="hp-title">协议优先：任何人都可以重建一个 Eksmu 实例</h2></div><span class="badge">已实测</span></header>
+<div class="hp-body">
+<p><a href="https://github.com/magicknight/eksmu-protocol" rel="noreferrer">开源源码与核验仓库</a></p>
+<p>eksmu.com 是这套公开协议的参考实例，不是唯一可能的实例。首发归属的证据来自记录链与比特币锚点，不绑定域名：只要有人保存了公开镜像，即使站点关闭，也能独立核验这些记录。</p>
+<p>2026-11-09 的实测：从 eksmu.com 下载公开镜像，导入一个全新的空数据库，重建出的记录链头与线上完全一致，并能正常启动服务。</p>
+<pre class="citation">git clone https://github.com/magicknight/eksmu-protocol.git
+cd eksmu-protocol
+# 1. pull and verify the public mirror
+python3 eksmu_verify.py pull https://eksmu.com ./mirror
+
+# 2. verify again, then rebuild into a NEW empty database
+python3 -m eksmu --db ./data/community.sqlite mirror-import ./mirror
+
+# 3. the chain head must equal the live site's
+python3 -m eksmu --db ./data/community.sqlite verify-chain
+
+# 4. run it locally (127.0.0.1:8765) and check protocol conformance
+python3 -m eksmu --db ./data/community.sqlite serve
+python3 eksmu_verify.py conform http://127.0.0.1:8765
+</pre>
+<p>每个实例都会自述协议版本与开放端点：<a href="/.well-known/eksmu.json">/.well-known/eksmu.json</a></p>
+<p>conform 命令检查任何站点是否符合协议，包含自述文件、镜像核验、源码对照三项。</p>
+<ul>
+<li><strong>重建恢复的是公开记录与记录链：</strong>账户与登录凭据、附件原始字节、AI 分析、发表快照不随导入恢复；比特币锚点证明保留在镜像目录里，可单独核验。</li>
+<li><strong>目前不是联邦：</strong>实例之间不会自动同步，也不会互相承认，各自拥有独立的链。联邦互认是路线图，不是已有功能。</li>
+<li><strong>一致性检查不评价内容：</strong>协议一致只说明站点遵循同一套记录格式，不说明其治理、审核方式或内容质量。</li>
+</ul>
+</div></section>
+
 <section class="panel hp" id="open-boundaries">
-<header class="hp-head section-head"><div class="hp-titles"><span class="hp-code mono">04 · BOUNDARIES</span><h2 class="hp-title">诚实边界：这些技术能证明什么，不能证明什么</h2></div><span class="badge">客观限制</span></header>
+<header class="hp-head section-head"><div class="hp-titles"><span class="hp-code mono">05 · BOUNDARIES</span><h2 class="hp-title">诚实边界：这些技术能证明什么，不能证明什么</h2></div><span class="badge">客观限制</span></header>
 <div class="hp-body">
 <ul>
 <li><strong>能证明存在时间与完整性：</strong>经独立核验的锚点为已入链的记录与附件摘要提供时间上限证据；对照保存的链头或单条证明即可发现对正文或附件字节的任何改动。</li>

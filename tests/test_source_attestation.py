@@ -118,6 +118,21 @@ class EndpointTests(unittest.TestCase):
         self.assertTrue(report['matches_checkout'])
         self.assertFalse(report['site_reports_drift_from_manifest'])
 
+    def test_descriptor_and_conformance_of_a_fresh_instance(self):
+        code, body = self.call('/.well-known/eksmu.json')
+        self.assertEqual(code, 200)
+        value = json.loads(body)
+        self.assertEqual((value['format'], value['protocol']['record_chain']), ('eksmu.instance.v1', 'eksmu.record-chain.v1'))
+        self.assertTrue(any('federation' in item for item in value['not_claimed']))
+        report = eksmu_verify.conform(f'http://127.0.0.1:{self.server.server_port}')
+        self.assertTrue(report['conformant'], report['checks'])
+        self.assertEqual([c['ok'] for c in report['checks']], [True, True, True])
+
+    def test_conformance_fails_without_descriptor(self):
+        report = eksmu_verify.conform('http://127.0.0.1:1')
+        self.assertFalse(report['conformant'])
+        self.assertFalse(any(c['ok'] for c in report['checks']))
+
 
 if __name__ == '__main__':
     unittest.main()
