@@ -7,7 +7,8 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-FIXTURE = ROOT / 'public-overlay' / 'tests' / 'fixture-mirror'
+# The verifier fixture lives under public-overlay/ in the private repo and under tests/ in the public tree.
+FIXTURE = next(p for p in (ROOT / 'public-overlay' / 'tests' / 'fixture-mirror', ROOT / 'tests' / 'fixture-mirror') if p.is_dir())
 
 
 def cli(db, *args):
